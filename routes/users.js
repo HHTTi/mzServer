@@ -28,8 +28,9 @@ router.post('/login',(req,res)=>{
 })
 //登陆状态
 router.get('/isLogin',(req,res)=>{
-    var uid = req.session["uid"]
-    if(uid === undefined){
+    var uid = req.session["uid"];
+    console.log('uid:',uid)
+    if(uid === undefined || !uid ){
         res.send({"code": 0 ,"msg": "未登陆"})
     }else{
         var sql = 'select uname from meizu_user where uid = ?'

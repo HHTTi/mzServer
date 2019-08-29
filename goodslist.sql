@@ -50,89 +50,89 @@ CREATE TABLE `meizu_product_pic` (
   `ban_url2` varchar(128) default NULL,
   `ban_url3` varchar(128) default NULL,
   `ban_url4` varchar(128) default NULL,
-  `img_url` varchar(1024) default NULL,
+  `img_url` text default NULL,
   PRIMARY KEY  (`family_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
     
 INSERT INTO `meizu_product_pic` VALUES ('1', 
-    'http://127.0.0.1:3000/meizu-16th/16th-1.jpg',
-    'http://127.0.0.1:3000/meizu-16th/16th-2.jpg',
-    'http://127.0.0.1:3000/meizu-16th/16th-3.jpg', 'http://127.0.0.1:3000/meizu-16th/16th-4.jpg',
-'<img src="http://127.0.0.1:3000/meizu-16th/16th-info-1.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-2.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-3.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-4.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-5.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-6.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-7.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-8.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-9.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-10.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-11.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-12.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-13.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-14.jpg">
-<img src="http://127.0.0.1:3000/meizu-16th/16th-info-15.jpg">');
+    'http://139.155.69.31/mzServer/public/meizu-16th/16th-1.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-16th/16th-2.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-16th/16th-3.jpg', 'http://139.155.69.31/mzServer/public/meizu-16th/16th-4.jpg',
+'<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-1.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-2.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-3.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-4.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-5.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-6.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-7.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-8.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-9.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-10.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-11.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-12.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-13.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-14.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16th/16th-info-15.jpg">');
 
 INSERT INTO `meizu_product_pic` VALUES ('2', 
-    'http://127.0.0.1:3000/meizu-16x/16x-1.jpg',
-    'http://127.0.0.1:3000/meizu-16x/16x-2.jpg',
-    'http://127.0.0.1:3000/meizu-16x/16x-3.jpg', 'http://127.0.0.1:3000/meizu-16x/16x-4.jpg',
-'<img src="http://127.0.0.1:3000/meizu-16x/16x-info-1.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-2.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-3.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-4.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-5.png">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-6.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-7.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-8.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-9.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-10.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-11.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-12.jpg">
-<img src="http://127.0.0.1:3000/meizu-16x/16x-info-13.jpg">');
+    'http://139.155.69.31/mzServer/public/meizu-16x/16x-1.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-16x/16x-2.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-16x/16x-3.jpg', 'http://139.155.69.31/mzServer/public/meizu-16x/16x-4.jpg',
+'<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-1.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-2.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-3.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-4.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-5.png">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-6.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-7.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-8.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-9.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-10.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-11.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-12.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-16x/16x-info-13.jpg">');
 
 INSERT INTO `meizu_product_pic` VALUES ('3', 
-    'http://127.0.0.1:3000/meizu-dianyuan/dianyuan-1.jpg',
-    'http://127.0.0.1:3000/meizu-dianyuan/dianyuan-2.jpg',
-    'http://127.0.0.1:3000/meizu-dianyuan/dianyuan-3.jpg', 'http://127.0.0.1:3000/meizu-dianyuan/dianyuan-4.jpg',
-'<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-1.jpg">
-<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-2.jpg">
-<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-3.jpg">
-<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-4.jpg">
-<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-5.jpg">
-<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-6.jpg">
-<img src="http://127.0.0.1:3000/meizu-dianyuan/dianyuan-info-7.jpg">');
+    'http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-1.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-2.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-3.jpg', 'http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-4.jpg',
+'<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-1.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-2.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-3.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-4.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-5.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-6.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-dianyuan/dianyuan-info-7.jpg">');
 
 INSERT INTO `meizu_product_pic` VALUES ('4', 
-    'http://127.0.0.1:3000/meizu-usb/usb-1.jpg',
-    'http://127.0.0.1:3000/meizu-usb/usb-2.jpg',
-    'http://127.0.0.1:3000/meizu-usb/usb-3.jpg', 'http://127.0.0.1:3000/meizu-usb/usb-4.jpg',
-'<img src="http://127.0.0.1:3000/meizu-usb/usb-info-1.jpg">
-<img src="http://127.0.0.1:3000/meizu-usb/usb-info-2.jpg">
-<img src="http://127.0.0.1:3000/meizu-usb/usb-info-3.jpg">
-<img src="http://127.0.0.1:3000/meizu-usb/usb-info-4.jpg">
-<img src="http://127.0.0.1:3000/meizu-usb/usb-info-5.jpg">
-<img src="http://127.0.0.1:3000/meizu-usb/usb-info-6.jpg">
-<img src="http://127.0.0.1:3000/meizu-usb/usb-info-7.jpg">');
+    'http://139.155.69.31/mzServer/public/meizu-usb/usb-1.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-usb/usb-2.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-usb/usb-3.jpg', 'http://139.155.69.31/mzServer/public/meizu-usb/usb-4.jpg',
+'<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-1.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-2.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-3.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-4.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-5.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-6.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-usb/usb-info-7.jpg">');
 
 INSERT INTO `meizu_product_pic` VALUES ('5', 
-    'http://127.0.0.1:3000/meizu-headset/headset-1.jpg',
-    'http://127.0.0.1:3000/meizu-headset/headset-2.jpg',
-    'http://127.0.0.1:3000/meizu-headset/headset-3.jpg', 'http://127.0.0.1:3000/meizu-headset/headset-4.jpg',
-'<img src="http://127.0.0.1:3000/meizu-headset/headset-info-1.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-2.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-3.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-4.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-5.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-6.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-7.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-8.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-9.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-10.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-11.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-12.jpg">
-<img src="http://127.0.0.1:3000/meizu-headset/headset-info-13.jpg">');
+    'http://139.155.69.31/mzServer/public/meizu-headset/headset-1.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-headset/headset-2.jpg',
+    'http://139.155.69.31/mzServer/public/meizu-headset/headset-3.jpg', 'http://139.155.69.31/mzServer/public/meizu-headset/headset-4.jpg',
+'<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-1.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-2.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-3.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-4.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-5.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-6.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-7.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-8.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-9.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-10.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-11.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-12.jpg">
+<img src="http://139.155.69.31/mzServer/public/meizu-headset/headset-info-13.jpg">');
 
 
 
@@ -180,7 +180,7 @@ CREATE TABLE `meizu_shopcart` (
 -- ----------------------------
 -- Records of meizu_shopcart
 -- ----------------------------
-INSERT INTO `meizu_shopcart` VALUES ( 1,1,'魅族 16th', '101', '远山白', '2699', '6+64G', 1,'http://127.0.0.1:3000/meizu-16th/16th-1.jpg');
-INSERT INTO `meizu_shopcart` VALUES ( 2,1,'魅族 16x', '201', '汝窑白', '2099', '6+64G',2,'http://127.0.0.1:3000/meizu-16x/16x-1.jpg');
+INSERT INTO `meizu_shopcart` VALUES ( 1,1,'魅族 16th', '101', '远山白', '2699', '6+64G', 1,'http://139.155.69.31/mzServer/public/meizu-16th/16th-1.jpg');
+INSERT INTO `meizu_shopcart` VALUES ( 2,1,'魅族 16x', '201', '汝窑白', '2099', '6+64G',2,'http://139.155.69.31/mzServer/public/meizu-16x/16x-1.jpg');
 
 
