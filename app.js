@@ -6,6 +6,8 @@ const qs = require('querystring')
 const path = require('path');
 const session = require('express-session')
 
+const https = require('https');
+
 /*引入路由模块*/
 var index = require("./routes/index");
 var products = require("./routes/products");
