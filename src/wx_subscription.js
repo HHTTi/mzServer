@@ -62,7 +62,6 @@ class wx_subscription {
                 };
                 //将文章同步到数据库中
                 const result = await this.saveArticle(article);
-                console.log('result///////////',result);
             }
         }
     }

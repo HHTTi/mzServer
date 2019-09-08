@@ -62,12 +62,14 @@ CREATE TABLE `article_list` (
 DROP TABLE IF EXISTS `user_info`;
 CREATE TABLE `user_info` (
   `uid`     int(11) NOT NULL auto_increment,
-  `uname`     varchar(32) default NULL,
-  `avatarUrl`  varchar(1024) default NULL,
-  `country`   varchar(16) default NULL,
-  `city`     varchar(128) default NULL,
-  `province`   varchar(128) default NULL,
-  `gender`   int(1) default NULL,
+  `openId`  varchar(64) NOT NULL ,
+  `unionid`  varchar(64) default NULL ,
+  `uname`     varchar(32) NOT NULL ,
+  `avatarUrl`  varchar(256) NOT NULL,
+  `country`   varchar(32) default NULL,
+  `city`     varchar(32) default NULL,
+  `province`   varchar(32) default NULL,
+  `gender`   tinyint(1) default NULL,
   `language` varchar(32) default NULL,
   `token`    varchar(128) default NULL,
   PRIMARY KEY  (`uid`)

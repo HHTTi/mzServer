@@ -90,6 +90,18 @@ class wx_access_token {
         }
     }
 
+    async getUserOpenId(code){
+        try {
+            const href = `https://api.weixin.qq.com/sns/jscode2session?appid=${this.appID}&secret=${this.appSecret}&js_code=${code}&grant_type=authorization_code`;
+           
+            const {status,data} = await axios.post(href,{type,offset,count});
+            console.log('getUserOpenId ===:',status,data);
+            return data;
+        } catch(e) {
+            console.error('getUserOpenId出错：',e);
+        }
+    }
+
 }
 
 module.exports = wx_access_token;

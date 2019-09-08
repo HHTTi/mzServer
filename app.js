@@ -7,7 +7,7 @@ const path = require('path');
 const session = require('express-session')
 const https = require('https');
 
-// 获取 wx 公众号 access_token
+//  wx 公众号  access_token
 const config = {
     wechat: {
       appID: 'wxb2cc31675638526f', 
@@ -16,10 +16,9 @@ const config = {
     }
 }
 const wx_access_token = require('./src/wx_access_token');
-
 const wx_subscription = require('./src/wx_subscription');
 
-// 获取文章列表；
+// 获取文章列表, 写入数据库；
 const sub = new wx_subscription(config.wechat.appID,config.wechat.AppSecret);
 
     sub.syncLatestArticle();
@@ -30,7 +29,7 @@ const sub = new wx_subscription(config.wechat.appID,config.wechat.AppSecret);
 var index = require("./routes/index");
 var products = require("./routes/products");
 var users = require("./routes/users");
-// 微信公众号 
+// 小程序 api
 var wx = require("./routes/wx");
 
 var app = express();
