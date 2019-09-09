@@ -62,10 +62,10 @@ CREATE TABLE `article_list` (
 DROP TABLE IF EXISTS `user_info`;
 CREATE TABLE `user_info` (
   `uid`     int(11) NOT NULL auto_increment,
-  `openId`  varchar(64) NOT NULL ,
+  `openId`  varchar(64) default NULL ,
   `unionid`  varchar(64) default NULL ,
-  `uname`     varchar(32) NOT NULL ,
-  `avatarUrl`  varchar(256) NOT NULL,
+  `uname`     varchar(32) default NULL ,
+  `avatarUrl`  varchar(256) default NULL,
   `country`   varchar(32) default NULL,
   `city`     varchar(32) default NULL,
   `province`   varchar(32) default NULL,
@@ -73,7 +73,7 @@ CREATE TABLE `user_info` (
   `language` varchar(32) default NULL,
   `token`    varchar(128) default NULL,
   PRIMARY KEY  (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of user_info
@@ -90,22 +90,29 @@ INSERT INTO `user_info` (`uid`, `uname`, `avatarUrl`, `country`, `city`, `provin
 -- ----------------------------
 DROP TABLE IF EXISTS `user_message`;
 CREATE TABLE `user_message` (
-  `u_message_id`	      int(11) NOT NULL ,
-  `uid`	               int(11) NOT NULL ,
-  `blog_id`             int(11) NOT NULL ,
+  `u_message_id`	     int(11) NOT NULL auto_increment,
+  `openId`	           varchar(64) NOT NULL  COMMENT '用户id',
+  `blog_id`            int(11) NOT NULL  COMMENT '文章id',
+  `user_nickName`     varchar(32) default NULL ,
+  `user_avatarUrl`    varchar(256) default NULL,
   `user_message`      varchar(1024) default NULL,
-  `author_message`	  int(11) NOT NULL ,
+  `author_message`	   varchar(1024) default NULL ,
   `is_top`            int(11) default NULL,
-  `is_show`           int(11) NOT NULL ,
+  `is_show`           int(11) default NULL ,
   
-  `like_number`       varchar(64) default NULL,
+  `like_number`       int(11) default NULL,
   `token`             varchar(128) default NULL,
-  PRIMARY KEY  (`uid`)
+  PRIMARY KEY  (`u_message_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 -- ----------------------------
 -- Records of user_message
 -- ----------------------------
+INSERT INTO `user_message` ( `openId`, `blog_id`, `user_nickName`,`user_avatarUrl`,`user_message`,`author_message`) VALUES
+                        ( 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '1','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test message test message----test message ','author_messageauthor_message'),
+                        ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 222message test message 222 test message','author_messagesssssssss'),
+                        ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 3333 test message 333 test message',NULL),
+                        ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 44444 test message 44444444444444444444 test message','author_messageauthor_messageauthor_messageauthor_messageauthor_messageauthor_message');
 
 
 
@@ -116,8 +123,9 @@ CREATE TABLE `user_message` (
 DROP TABLE IF EXISTS `user_message_likes`;
 CREATE TABLE `user_message_likes` (
   `u_msg_like_id`   int(11) NOT NULL auto_increment,
-  `uid`	               int(11) NOT NULL ,
-  `blog_id`             int(11) NOT NULL ,
+  `openId`	        varchar(64) NOT NULL  COMMENT '用户id',
+  `blog_id`         int(11) NOT NULL  COMMENT '文章id',
+  `u_message_id`    int(11) NOT NULL  COMMENT '用户留言id',
   `like_date`         datetime default NULL,
   `token`             varchar(128) default NULL,
   PRIMARY KEY  (`u_msg_like_id`)
