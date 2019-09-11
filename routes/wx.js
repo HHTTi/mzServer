@@ -172,7 +172,7 @@ router.post('/article_user_message', (req, res) => {
 
 // 提交评论 
 /**
- * @param openId                用户openId
+ * @param openId             用户openId
  * @param blog_id            blog_id
  * @param user_message       user_message
  * @param user_message       user_nickName
@@ -323,11 +323,74 @@ router.get('/add_u_msg_like', (req, res) => {
             // })
         }
     });
+})
 
+//用户所有的评论 
+/**
+* @param openId                用户openId
+* 
+*/
+router.get('/current_u_msg_all', (req, res) => {
+    var query = req.query ;
+    if (!query) return;
 
+    const { openId } = query;
+    console.log('current_u_msg_all:', openId);
+
+    var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number FROM user_message WHERE openid = ? `;
+    
+    pool.query(sql, [openId], (err, result) => {
+        if (err) throw err;
+        console.log('current_u_msg_all:', result);
+
+        if( result.length > 0 ){
+            var arr=[];
+            result.forEach(ele=>{
+                arr.push(ele.blog_id)
+            })
+            var sql2 = `SELECT title FROM article_list WHERE blog_id IN (${arr})`;
+
+            pool.query(sql2,[],(error,resu)=>{
+                if (error) throw error;
+                console.log('current_u_msg_all:title:', resu);
+                if(resu.length > 0){
+                    let resArr = [];
+                    result.forEach((ele,index)=>{
+                        resArr.push( Object.assign({},ele,resu[index]))
+                    })
+                    res.send({'code':1,'msg':resArr});
+                }else 
+                    res.send({'code':0,'msg':resu})
+            })
+        }else    
+            res.send({'code':0,'msg':result})
+    })
 
 })
 
+// 用户删除评论
+/**
+* @param openId                用户openId
+* @param blog_id               blog_id
+* @param u_message_id          u_message_id
+* 
+*/
+router.get('/current_u_msg_delete', (req, res) => {
+    var query = req.query ;
+    if (!query) return;
+
+    const { openId,blog_id,u_message_id } = query;
+    console.log('current_u_msg_delete:', query);
+    var sql = `DELETE FROM user_message WHERE openId = ? AND blog_id = ? AND u_message_id = ? `;
+    pool.query(sql,[openId,blog_id,u_message_id],(err,resul)=> {
+        if (err) throw err;
+        if(resul.affectedRows > 0)
+            res.send({ 'code': 1 });
+        else 
+            res.send({ 'code': 0 ,'msg':resul});
+    })
+
+})
 
 
 module.exports = router;
