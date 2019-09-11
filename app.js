@@ -9,10 +9,15 @@ const https = require('https');
 
 //  wx 公众号  access_token
 const config = {
-    wechat: {
-      appID: 'wxb2cc31675638526f', 
-      AppSecret: 'b9658d5f13d98a90a4e99a2b14cc79f4',  
-      token: '2333'  
+    wechat: { 
+    //      订阅号 -- 人为拙
+    //   appID: 'wxb2cc31675638526f', 
+    //   AppSecret: 'b9658d5f13d98a90a4e99a2b14cc79f4',  
+    //   token: '2333'  
+    //      订阅号  -- 图图大人
+        appID: 'wxa34cf52c5af17457', 
+        AppSecret: '6b6b785d9b3523d12d87e4e76bbfa40d',  
+        token: '2333'  
     }
 }
 const wx_access_token = require('./src/wx_access_token');

@@ -78,10 +78,10 @@ CREATE TABLE `user_info` (
 -- ----------------------------
 -- Records of user_info
 -- ----------------------------
-INSERT INTO `user_info` (`uid`, `uname`, `avatarUrl`, `country`, `city`, `province`, `gender`, `language` , `token`) VALUES
-                        (1, 'test', 'test-img', 'china', 'shanghai', 'shanghai', 0 , 'zh-cn', NULL),
+-- INSERT INTO `user_info` (`uid`, `uname`, `avatarUrl`, `country`, `city`, `province`, `gender`, `language` , `token`) VALUES
+--                         (1, 'test', 'test-img', 'china', 'shanghai', 'shanghai', 0 , 'zh-cn', NULL),
 
-                        (2, '1111', '111111', 'china', 'shanghai', '深圳市--',1, NULL, NULL);
+--                         (2, '1111', '111111', 'china', 'shanghai', '深圳市--',1, NULL, NULL);
 
 
 
@@ -108,11 +108,11 @@ CREATE TABLE `user_message` (
 -- ----------------------------
 -- Records of user_message
 -- ----------------------------
-INSERT INTO `user_message` ( `openId`, `blog_id`, `user_nickName`,`user_avatarUrl`,`user_message`,`author_message`) VALUES
-                        ( 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '1','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test message test message----test message ','author_messageauthor_message'),
-                        ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 222message test message 222 test message','author_messagesssssssss'),
-                        ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 3333 test message 333 test message',NULL),
-                        ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 44444 test message 44444444444444444444 test message','author_messageauthor_messageauthor_messageauthor_messageauthor_messageauthor_message');
+-- INSERT INTO `user_message` ( `openId`, `blog_id`, `user_nickName`,`user_avatarUrl`,`user_message`,`author_message`) VALUES
+--                         ( 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '1','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test message test message----test message ','author_messageauthor_message'),
+--                         ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 222message test message 222 test message','author_messagesssssssss'),
+--                         ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 3333 test message 333 test message',NULL),
+--                         ('oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ', '2','fffdd',"https://wx.qlogo.cn/mmopen/vi_32/TA3kAQ9NGHHVIIicmvPRoBvBibLsic0P3KgXpnvdSvTR08cWwlQxawPNib1vpjZ8OJXStdNSG0KDcpGCq2ibGnMaYow/132", 'test 44444 test message 44444444444444444444 test message','author_messageauthor_messageauthor_messageauthor_messageauthor_messageauthor_message');
 
 
 

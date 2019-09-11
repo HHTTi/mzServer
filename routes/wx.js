@@ -55,7 +55,7 @@ router.get("/token", (req, res) => {
     var scyptoString = sha1(original);
     if (signature == scyptoString) {
         res.send(echostr);
-        console.log("Confirm and send echo back"); ``
+        console.log("Confirm and send echo back");
     } else {
         res.send("false");
         console.log("Failed!");
@@ -175,7 +175,8 @@ router.post('/article_user_message', (req, res) => {
  * @param openId                用户openId
  * @param blog_id            blog_id
  * @param user_message       user_message
- * @param user_message       user_message
+ * @param user_message       user_nickName
+ * @param user_message       头像
  * 
  */
 router.post('/add_user_message', (req, res) => {
@@ -199,17 +200,7 @@ router.post('/add_user_message', (req, res) => {
     })
 })
 
-// 用户是否点过赞
-function can_add_u_msg_like(openid, cb) {
-    var sql = `SELECT u_message_id FROM user_message_likes WHERE openid = ?`;
-    pool.query(sql, [openid], (err, result) => {
-        if (err) throw err;
-        console.log('can_add_u_msg_like:', result)
 
-        cb(result);
-
-    })
-}
 // 用户已经点赞的评论
 /**
 * @param openId                用户openId
@@ -222,17 +213,52 @@ router.get('/current_u_msg_like', (req, res) => {
     if (!query) return;
 
     const { openId, blog_id } = query;
+    var sql = `SELECT u_message_id FROM user_message_likes WHERE openid = ? AND blog_id = ? `;
+    pool.query(sql, [openId,blog_id], (err, result) => {
+        if (err) throw err;
+        console.log('current_u_msg_like:', result);
 
-    can_add_u_msg_like(openId, (result) =>{
-        if(result.length>0)
-            res.send({'code':1,'msg':result})
-        else    
+        if( result.length > 0 ){
+            res.send({'code':1,'msg':result});
+        }else    
             res.send({'code':0,'msg':result})
+
     })
+
 })
 
+// 用户是否点过赞
+function can_add_u_msg_like(openid,u_message_id, cb) {
+    var sql = `SELECT u_message_id FROM user_message_likes WHERE openid = ? AND u_message_id = ?`;
+    pool.query(sql, [openid,u_message_id], (err, result) => {
+        if (err) throw err;
+        console.log('can_add_u_msg_like:', result)
 
-//点赞 (在能点赞的情况下)
+        cb(result);
+
+    })
+}
+// 修改 user_message 中 点赞数
+function change_like_number(openId,u_message_id,number ,cb) {
+    var sql2 = `SELECT like_number FROM user_message WHERE u_message_id = ? AND openId = ?`;
+    var sql3 = `UPDATE user_message SET like_number= ?  WHERE u_message_id = ?`;
+
+    pool.query(sql2, [u_message_id,openId], (error, result) => {
+        if (error) throw err;
+        let num = Number(result[0].like_number);
+        num += Number(number);
+
+        console.log('like_number sql2:', num)
+
+        pool.query(sql3, [num, u_message_id], (err, resul) => {
+            if (err) throw err;
+            console.log('sql3', resul);
+                cb(resul);
+        })
+    })
+
+}
+//点赞  或者 取消点赞
 /**
 * @param openId                用户openId
 * @param blog_id            blog_id
@@ -247,13 +273,22 @@ router.get('/add_u_msg_like', (req, res) => {
     const { openId, blog_id, u_message_id } = query;
     const like_date = new Date();
 
-    can_add_u_msg_like(openId,(result)=>{
-        if (result.length > 0 && result[0].u_message_id == u_message_id) {
-            res.send({ 'code': 0 });
+    can_add_u_msg_like(openId,u_message_id,(result)=>{
+        // && result[0].u_message_id == u_message_id
+        if (result.length > 0 ) {
+            var sql4 = `DELETE FROM user_message_likes WHERE u_message_id = ? `;
+            pool.query(sql4,[u_message_id],(err,result) => {
+                if (err) throw err;
+                console.log('DELETE FROM user_message_likes:',result);
+                change_like_number(openId,u_message_id,-1,(resul)=> {
+                    if(resul.affectedRows > 0)
+                        res.send({ 'code': 1 });
+                    else 
+                        res.send({ 'code': 0 ,'msg':resul});
+                })
+            })
         }else {
             var sql = `INSERT INTO user_message_likes (openId,blog_id,u_message_id,like_date)  VALUES ( ?,?,?,? ) `;
-            var sql2 = `SELECT like_number FROM user_message WHERE u_message_id = ?`;
-            var sql3 = `UPDATE user_message SET like_number= ?  WHERE u_message_id = ?`;
         
             pool.query(sql, [openId, blog_id, u_message_id, like_date], (err, result) => {
                 if (err) throw err;
@@ -263,23 +298,29 @@ router.get('/add_u_msg_like', (req, res) => {
                     isSend == 100 ? res.send({ 'code': 1 }) : ''
                 }
             });
-        
-            pool.query(sql2, [u_message_id], (err, result) => {
-                if (err) throw err;
-                let num = Number(result[0].like_number);
-                num += 1;
-        
-                console.log('like_number sql2:', num)
-        
-                pool.query(sql3, [num, u_message_id], (err, resul) => {
-                    if (err) throw err;
-                    console.log('sql3', resul);
-                    if (resul.affectedRows > 0) {
-                        isSend += 50;
-                        isSend == 100 ? res.send({ 'code': 1 }) : ''
-                    }
-                })
+            change_like_number(openId,u_message_id,1,(resul)=> {
+                if(resul.affectedRows > 0){
+                    isSend += 50;
+                    isSend == 100 ? res.send({ 'code': 1 }) : ''
+                }else 
+                    res.send({ 'code': 0 ,'msg':resul});
             })
+            // pool.query(sql2, [u_message_id,openId], (err, result) => {
+            //     if (err) throw err;
+            //     let num = Number(result[0].like_number);
+            //     num += 1;
+        
+            //     console.log('like_number sql2:', num)
+        
+            //     pool.query(sql3, [num, u_message_id], (err, resul) => {
+            //         if (err) throw err;
+            //         console.log('sql3', resul);
+            //         if (resul.affectedRows > 0) {
+            //             isSend += 50;
+            //             isSend == 100 ? res.send({ 'code': 1 }) : ''
+            //         }
+            //     })
+            // })
         }
     });
 
