@@ -1,5 +1,5 @@
 ﻿#id,pid, family_id , title ,subtitle , price , spec , banner_url ,img_url
-CREATE DATABASE IF NOT EXISTS meizu default charset utf8 ;
+CREATE DATABASE IF NOT EXISTS meizu default charset utf8mb4 ;
 use meizu;
 -- ----------------------------
 -- Table structure for `meizu`
@@ -14,7 +14,7 @@ CREATE TABLE `meizu_product` (
   `price`            decimal(10,2) default NULL,
   `spec`             varchar(64) default NULL,
   PRIMARY KEY  (`pid`)
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=utf8mb4;
  
 INSERT INTO `meizu_product` VALUES ('101', '1', '魅族 16th', '骁龙845 屏幕下指纹',  '远山白', '2699', '6+64G');
 INSERT INTO `meizu_product` VALUES ('102', '1', '魅族 16th', '骁龙845 屏幕下指纹',  '静夜黑', '2699', '6+64G');
@@ -52,7 +52,7 @@ CREATE TABLE `meizu_product_pic` (
   `ban_url4` varchar(128) default NULL,
   `img_url` text default NULL,
   PRIMARY KEY  (`family_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
     
 INSERT INTO `meizu_product_pic` VALUES ('1', 
     'http://139.155.69.31/mzServer/public/meizu-16th/16th-1.jpg',
@@ -148,7 +148,7 @@ CREATE TABLE `meizu_user` (
   `user_name` varchar(32) default NULL,
   `gender` int(11) default NULL,
   PRIMARY KEY  (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of meizu_user
@@ -175,7 +175,7 @@ CREATE TABLE `meizu_shopcart` (
   `number` int(11) NOT NULL ,
   `url` varchar(128) default NULL,
   PRIMARY KEY  (`shopcart_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
 
 -- ----------------------------
 -- Records of meizu_shopcart

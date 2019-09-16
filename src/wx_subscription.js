@@ -98,7 +98,7 @@ class wx_subscription {
                 });
             }
         } catch (e) {
-            console.error('saveArticle出错：',e)
+            console.log('saveArticle出错：',e)
         }
     }
 

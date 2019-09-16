@@ -6,6 +6,7 @@ var pool=mysql.createPool({
     user:'root',
     password:'Sansi1226',
     database:'meizu',
+    charset : 'utf8mb4',
     connectionLimit:10
 });
 

@@ -1,5 +1,5 @@
 ﻿
-CREATE DATABASE IF NOT EXISTS meizu default charset utf8 ;
+CREATE DATABASE IF NOT EXISTS meizu default charset utf8mb4 ;
 use meizu;
 -- ----------------------------
 -- Table structure for `blogreview`
@@ -14,7 +14,7 @@ CREATE TABLE `subscriptions_info` (
   `openid`          varchar(128) default NULL,
   `token`           varchar(128) default NULL,
   PRIMARY KEY  (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET= utf8mb4;
  
 INSERT INTO `subscriptions_info` VALUES (1, 'test', 'test', '骁龙845 屏幕下指纹',  '2222555ds2f', '2699', 'eeeeeeeeeeeeeeeeeeeeee');
 
@@ -53,7 +53,7 @@ CREATE TABLE `article_list` (
   `create_time`     datetime DEFAULT NULL COMMENT '创建时间',
   `subscripttion_id`  int(10) default NULL,
   PRIMARY KEY (`blog_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET= utf8mb4;
 
 
 -- ----------------------------
@@ -73,7 +73,7 @@ CREATE TABLE `user_info` (
   `language` varchar(32) default NULL,
   `token`    varchar(128) default NULL,
   PRIMARY KEY  (`uid`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET= utf8mb4;
 
 -- ----------------------------
 -- Records of user_info
@@ -99,11 +99,11 @@ CREATE TABLE `user_message` (
   `author_message`	   varchar(1024) default NULL ,
   `is_top`            int(11) default NULL,
   `is_show`           int(11) default NULL ,
-  
+  `title`           varchar(255) NOT NULL COMMENT '标题',
   `like_number`       int(11) default NULL,
   `token`             varchar(128) default NULL,
   PRIMARY KEY  (`u_message_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET= utf8mb4;
 
 -- ----------------------------
 -- Records of user_message
@@ -129,5 +129,5 @@ CREATE TABLE `user_message_likes` (
   `like_date`         datetime default NULL,
   `token`             varchar(128) default NULL,
   PRIMARY KEY  (`u_msg_like_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET= utf8mb4;
 
