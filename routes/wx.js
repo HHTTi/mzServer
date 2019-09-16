@@ -147,7 +147,7 @@ router.post('/article_list', (req, res) => {
         pool.query(sql, (err, result) => {
             if (err) throw err;
             console.log('article_list_result:', result)
-            if (result.length > 0) {
+            if (result.length > 0) { 
 
                 res.send({ 'code': 1, 'msg': result })
             } else
@@ -173,7 +173,7 @@ router.post('/article_user_message', (req, res) => {
             return
         };
 
-        var sql = `SELECT u_message_id,openId,user_nickName,user_avatarUrl,user_message,author_message,is_top,is_show,like_number FROM user_message WHERE blog_id = ? `
+        var sql = `SELECT u_message_id,openId,user_nickName,user_avatarUrl,user_message,author_message,is_top,is_show,like_number FROM user_message WHERE blog_id = ? ORDER BY like_number DESC`
         pool.query(sql, [blog_id], (err, result) => {
             if (err) throw err;
             console.log('article_user_message sql:', result);
@@ -473,7 +473,7 @@ router.get('/admin_all_message', (req, res) => {
         return
     };
 
-    var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title FROM user_message ORDER BY u_message_id DESC limit ?,? ;`;
+    var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title,is_top,is_show FROM user_message ORDER BY u_message_id DESC limit ?,? ;`;
 
     var p = Number((page-1)*size), s = Number(size);
     
@@ -573,11 +573,13 @@ router.get('/admin_to_top_message', (req, res) => {
     pool.query(sql,[blog_id,u_message_id],(err,resul)=> {
         if (err) throw err;
         if(resul.length > 0){
-            let isTop = resul[0];
-            pool.query(sql2,[!isTop,blog_id,u_message_id],(err,result)=> {
+            let isTop = resul[0].is_top;
+
+            isTop ? isTop = 0: isTop = 1;
+            pool.query(sql2,[isTop,blog_id,u_message_id],(err,result)=> {
                 if (err) throw err;
                 if(result.affectedRows > 0)
-                    res.send({ 'code': 1 ,msg:{'isTop':!isTop}});
+                    res.send({ 'code': 1 ,msg:{'isTop':isTop}});
                 else 
                     res.send({ 'code': 0 ,'msg':result});
             })
