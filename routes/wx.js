@@ -133,8 +133,6 @@ router.post('/add_user_info_data', (req, res) => {
 
 // 获取文章列表
 router.post('/article_list', (req, res) => {
-    var query = req.query;
-    console.log('query:', req)
     req.on("data", function (buf) {
         var data = JSON.parse(buf.toString());
         console.log('article_list', data, data.name);
@@ -156,7 +154,29 @@ router.post('/article_list', (req, res) => {
 
     })
 })
+// 获取文章
+router.get("/article_item", (req, res) => {
+    var query = req.query ;
+    console.log('article_item:', query);
+    const {  blog_id } = query;
 
+    if (!blog_id) {
+        res.send({'code':0,'msg':'参数错误'});
+        return;
+    };
+
+    var sql = `SELECT title,url,create_time from article_list where  blog_id = ?`;
+    pool.query(sql, [blog_id], (err, result) => {
+        if (err) throw err;
+        console.log('SELECT title,url,create_time from article_list:', result);
+
+        if( result.length > 0 ){
+            res.send({'code':1,'msg':result[0]});
+        }else    
+            res.send({'code':0,'msg':result})
+
+    })
+})
 
 // 获取文章的 评论列表 点赞数量 用户点赞
 /**
@@ -168,7 +188,7 @@ router.post('/article_user_message', (req, res) => {
         const data = JSON.parse(buf.toString());
         const { openId, blog_id } = data
         console.log('article_user_message 评论列表:', data);
-        if (!data) {
+        if (!blog_id) {
             res.send({'code':0,'msg':'参数错误'});
             return
         };
