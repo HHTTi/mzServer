@@ -86,25 +86,28 @@ router.post('/user_openId', (req, res) => {
             res.send({'code':0,'msg':'参数错误'});
             return
         };
+        try {
+            getUserOpenId(data.code).then(result => {
+                console.log(result, '====getUserOpenId');
+                /*
+                *  { session_key: '82p9cq5YLPTq6CUb7ITqeQ==',
+                *  openid: 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ' }
+                */
+                var sql = 'SELECT uid  from user_info where openId = ?'
+                pool.query(sql, [result.openid], (err, resul) => {
+                    if (err) throw err;
+                    console.log('getUserOpenId result:', resul);
+                    resul.length > 0 ?
+                        res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':true,'canAddReview':false} })
+                        :
+                        res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':false,'canAddReview':false} })
 
-        getUserOpenId(data.code).then(result => {
-            console.log(result, '====getUserOpenId');
-            /*
-             *  { session_key: '82p9cq5YLPTq6CUb7ITqeQ==',
-             *  openid: 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ' }
-             */
-            var sql = 'SELECT uid  from user_info where openId = ?'
-            pool.query(sql, [result.openid], (err, resul) => {
-                if (err) throw err;
-                console.log('getUserOpenId result:', resul);
-                resul.length > 0 ?
-                    res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':true,'canAddReview':false} })
-                    :
-                    res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':false,'canAddReview':false} })
-
+                })
             })
-        });
-
+        } catch (e) {
+            console.log('user_openId--catcherr==>>', e) ;
+            res.send({'code':0,'msg':'未知错误'});
+        }
     })
 })
 
@@ -126,15 +129,20 @@ router.post('/add_user_info_data', (req, res) => {
         };
 
         const sql = `INSERT INTO user_info (openId, uname, gender, language, city, province, country, avatarUrl ) VALUES( ?,? , ? , ? ,?,?,?,? )`
-        pool.query(sql, [openid,nickName, gender, language, city, province, country, avatarUrl], (err, result) => {
-            if (err) throw err;
-            console.log('add_user_info_data result:', result);
-            if (result.affectedRows > 0) {
-                res.send({ 'code': 1 })
-            } else {
-                res.send({ 'code': 0 })
-            }
-        })
+        try {
+            pool.query(sql, [openid,nickName, gender, language, city, province, country, avatarUrl], (err, result) => {
+                if (err) throw err;
+                console.log('add_user_info_data result:', result);
+                if (result.affectedRows > 0) {
+                    res.send({ 'code': 1 })
+                } else {
+                    res.send({ 'code': 0 })
+                }
+            })
+        } catch (e) {
+            console.log('add_user_info_data--catcherr==>>', e);
+            res.send({'code':0,'msg':'未知错误'});
+        }
     })
 })
 
@@ -150,16 +158,20 @@ router.post('/article_list', (req, res) => {
         };
 
         var sql = 'SELECT blog_id,title,thumb_url,thumb_media_id,author,digest,url,create_time from article_list where  blog_id < 20 ORDER BY create_time DESC'
-        pool.query(sql, (err, result) => {
-            if (err) throw err;
-            console.log('article_list_result:', result)
-            if (result.length > 0) { 
+        try {
+            pool.query(sql, (err, result) => {
+                if (err) throw err;
+                console.log('article_list_result:', result)
+                if (result.length > 0) { 
 
-                res.send({ 'code': 1, 'msg': result })
-            } else
-                res.send({ 'code': 0, 'msg': 'no article' })
-        })
-
+                    res.send({ 'code': 1, 'msg': result })
+                } else
+                    res.send({ 'code': 0, 'msg': 'no article' })
+            })
+        } catch (e) {
+            console.log('article_list--catcherr==>>', e);
+            res.send({'code':0,'msg':'未知错误'});
+        }
     })
 })
 // 获取文章
@@ -174,16 +186,20 @@ router.get("/article_item", (req, res) => {
     };
 
     var sql = `SELECT title,url,create_time from article_list where  blog_id = ?`;
-    pool.query(sql, [blog_id], (err, result) => {
-        if (err) throw err;
-        console.log('SELECT title,url,create_time from article_list:', result);
+    try {
+        pool.query(sql, [blog_id], (err, result) => {
+            if (err) throw err;
+            console.log('SELECT title,url,create_time from article_list:', result);
 
-        if( result.length > 0 ){
-            res.send({'code':1,'msg':result[0]});
-        }else    
-            res.send({'code':0,'msg':result})
-
-    })
+            if( result.length > 0 )
+                res.send({'code':1,'msg':result[0]});
+            else    
+                res.send({'code':0,'msg':result})
+        })
+    } catch (e) {
+        console.log('article_item--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 // 获取文章的 评论列表 点赞数量 用户点赞
@@ -202,19 +218,22 @@ router.post('/article_user_message', (req, res) => {
         };
 
         var sql = `SELECT u_message_id,openId,user_nickName,user_avatarUrl,user_message,author_message,is_top,is_show,like_number FROM user_message WHERE blog_id = ? ORDER BY like_number DESC`
-        pool.query(sql, [blog_id], (err, result) => {
-            if (err) throw err;
-            console.log('article_user_message sql:', result);
-
-            result.forEach(ele => {
-                if (!openId && ele.openId == openId) {
-                    ele.isCurrentUser = true;
-                }
-                delete ele.openId;
-            });
-            res.send({ 'code': 1, 'msg': result })
-        })
-
+        try {
+            pool.query(sql, [blog_id], (err, result) => {
+                if (err) throw err;
+                console.log('article_user_message sql:', result);
+                result.forEach(ele => {
+                    if (!openId && ele.openId == openId) {
+                        ele.isCurrentUser = true;
+                    }
+                    delete ele.openId;
+                });
+                res.send({ 'code': 1, 'msg': result })
+            })
+        } catch (e) {
+            console.log('article_user_message--catcherr==>>', e);
+            res.send({'code':0,'msg':'未知错误'});
+        }
     })
 })
 
@@ -239,23 +258,27 @@ router.post('/add_user_message', (req, res) => {
 
         var sql = 'INSERT INTO user_message ( openId , blog_id,user_nickName,user_avatarUrl, user_message,title ) VALUES( ? , ? , ?,?,?,? )'
         var sql2 = `SELECT title FROM article_list WHERE blog_id = ?`;
+        try {
+            pool.query(sql2,[blog_id],(err,resul)=>{
+                if (err) throw err;
+                console.log('SELECT title FROM article_list:',resul)
+                if(resul.length >0 && resul[0].title){
+                    pool.query(sql, [openId, blog_id, user_nickName, user_avatarUrl, user_message,resul[0].title], (err, result) => {
+                        if (err) throw err;
+                        console.log('add_user_message--:', result)
+                        if (result.affectedRows > 0) {
+                            res.send({ 'code': 1 })
+                        } else {
+                            res.send({ 'code': 0 })
+                        }
+                    })
+                }
+            })
 
-        pool.query(sql2,[blog_id],(err,resul)=>{
-            if (err) throw err;
-            console.log('SELECT title FROM article_list:',resul)
-            if(resul.length >0 && resul[0].title){
-                pool.query(sql, [openId, blog_id, user_nickName, user_avatarUrl, user_message,resul[0].title], (err, result) => {
-                    if (err) throw err;
-                    console.log('add_user_message--:', result)
-                    if (result.affectedRows > 0) {
-                        res.send({ 'code': 1 })
-                    } else {
-                        res.send({ 'code': 0 })
-                    }
-                })
-            }
-        })
-
+        } catch (e) {
+            console.log('add_user_message--catcherr==>>', e);
+            res.send({'code':0,'msg':'未知错误'});
+        }
     })
 })
 
@@ -276,17 +299,20 @@ router.get('/current_u_msg_like', (req, res) => {
 
     const { openId, blog_id } = query;
     var sql = `SELECT u_message_id FROM user_message_likes WHERE openid = ? AND blog_id = ? `;
-    pool.query(sql, [openId,blog_id], (err, result) => {
-        if (err) throw err;
-        console.log('current_u_msg_like:', result);
+    try {
+        pool.query(sql, [openId,blog_id], (err, result) => {
+            if (err) throw err;
+            console.log('current_u_msg_like:', result);
 
-        if( result.length > 0 ){
-            res.send({'code':1,'msg':result});
-        }else    
-            res.send({'code':0,'msg':result})
-
-    })
-
+            if( result.length > 0 )
+                res.send({'code':1,'msg':result});
+            else    
+                res.send({'code':0,'msg':result})
+        })
+    } catch (e) {
+        console.log('current_u_msg_like--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 // 用户是否点过赞
@@ -339,57 +365,46 @@ router.get('/add_u_msg_like', (req, res) => {
 
     const { openId, blog_id, u_message_id } = query;
     const like_date = new Date();
-
-    can_add_u_msg_like(openId,u_message_id,(result)=>{
-        // && result[0].u_message_id == u_message_id
-        if (result.length > 0 ) {
-            var sql4 = `DELETE FROM user_message_likes WHERE u_message_id = ? `;
-            pool.query(sql4,[u_message_id],(err,result) => {
-                if (err) throw err;
-                console.log('DELETE FROM user_message_likes:',result);
-                change_like_number(openId,u_message_id,-1,(resul)=> {
-                    if(resul.affectedRows > 0)
-                        res.send({ 'code': 1 });
-                    else 
+    try {
+        can_add_u_msg_like(openId,u_message_id,(result)=>{
+            
+            if (result.length > 0 ) {
+                var sql4 = `DELETE FROM user_message_likes WHERE u_message_id = ? `;
+                pool.query(sql4,[u_message_id],(err,result) => {
+                    if (err) throw err;
+                    console.log('DELETE FROM user_message_likes:',result);
+                    change_like_number(openId,u_message_id,-1,(resul)=> {
+                        if(resul.affectedRows > 0)
+                            res.send({ 'code': 1 });
+                        else 
+                            res.send({ 'code': 0 ,'msg':resul});
+                    })
+                })
+            }else {
+                var sql = `INSERT INTO user_message_likes (openId,blog_id,u_message_id,like_date)  VALUES ( ?,?,?,? ) `;
+            
+                pool.query(sql, [openId, blog_id, u_message_id, like_date], (err, result) => {
+                    if (err) throw err;
+                    console.log('add_u_msg_like sql1:', result);
+                    if (result.affectedRows > 0) {
+                        isSend += 50;
+                        isSend == 100 ? res.send({ 'code': 1 }) : ''
+                    }
+                });
+                change_like_number(openId,u_message_id,1,(resul)=> {
+                    if(resul.affectedRows > 0){
+                        isSend += 50;
+                        isSend == 100 ? res.send({ 'code': 1 }) : ''
+                    }else 
                         res.send({ 'code': 0 ,'msg':resul});
                 })
-            })
-        }else {
-            var sql = `INSERT INTO user_message_likes (openId,blog_id,u_message_id,like_date)  VALUES ( ?,?,?,? ) `;
-        
-            pool.query(sql, [openId, blog_id, u_message_id, like_date], (err, result) => {
-                if (err) throw err;
-                console.log('add_u_msg_like sql1:', result);
-                if (result.affectedRows > 0) {
-                    isSend += 50;
-                    isSend == 100 ? res.send({ 'code': 1 }) : ''
-                }
-            });
-            change_like_number(openId,u_message_id,1,(resul)=> {
-                if(resul.affectedRows > 0){
-                    isSend += 50;
-                    isSend == 100 ? res.send({ 'code': 1 }) : ''
-                }else 
-                    res.send({ 'code': 0 ,'msg':resul});
-            })
-            // pool.query(sql2, [u_message_id,openId], (err, result) => {
-            //     if (err) throw err;
-            //     let num = Number(result[0].like_number);
-            //     num += 1;
-        
-            //     console.log('like_number sql2:', num)
-        
-            //     pool.query(sql3, [num, u_message_id], (err, resul) => {
-            //         if (err) throw err;
-            //         console.log('sql3', resul);
-            //         if (resul.affectedRows > 0) {
-            //             isSend += 50;
-            //             isSend == 100 ? res.send({ 'code': 1 }) : ''
-            //         }
-            //     })
-            // })
-        }
-    });
+            }
+        })
+
+    } catch (e) {
+        console.log('add_u_msg_like--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 //用户所有的评论 
@@ -408,18 +423,21 @@ router.get('/current_u_msg_all', (req, res) => {
     console.log('current_u_msg_all:', openId);
 
     var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title FROM user_message WHERE openid = ? ORDER BY u_message_id DESC`;
-    
-    pool.query(sql, [openId], (err, result) => {
-        if (err) throw err;
-        console.log('current_u_msg_all:', result);
+    try {
+        pool.query(sql, [openId], (err, result) => {
+            if (err) throw err;
+            console.log('current_u_msg_all:', result);
 
-        if( result.length > 0 ){
-            res.send({'code':1,'msg':result});
-           
-        }else    
-            res.send({'code':0,'msg':result})
-    })
-
+            if( result.length > 0 ){
+                res.send({'code':1,'msg':result});
+            
+            }else    
+                res.send({'code':0,'msg':result})
+        })
+    } catch (e) {
+        console.log('current_u_msg_all--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 // 用户删除评论
@@ -438,14 +456,18 @@ router.get('/current_u_msg_delete', (req, res) => {
     const { openId,blog_id,u_message_id } = query;
     console.log('current_u_msg_delete:', query);
     var sql = `DELETE FROM user_message WHERE openId = ? AND blog_id = ? AND u_message_id = ? `;
-    pool.query(sql,[openId,blog_id,u_message_id],(err,resul)=> {
-        if (err) throw err;
-        if(resul.affectedRows > 0)
-            res.send({ 'code': 1 });
-        else 
-            res.send({ 'code': 0 ,'msg':resul});
-    })
-
+    try {
+        pool.query(sql,[openId,blog_id,u_message_id],(err,resul)=> {
+            if (err) throw err;
+            if(resul.affectedRows > 0)
+                res.send({ 'code': 1 });
+            else 
+                res.send({ 'code': 0 ,'msg':resul});
+        })
+    } catch (e) {
+        console.log('current_u_msg_delete--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 // 管理员登录后台
@@ -462,6 +484,7 @@ router.get('/is_admin', (req, res) => {
 
     const { openId } = query;
     console.log('is_admin:',openId === config.admin_openid.openId,query);
+
     if(openId === config.admin_openid.openId){
         res.send({'code':1})
     }else {
@@ -504,17 +527,22 @@ router.get('/admin_all_message', (req, res) => {
     var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title,is_top,is_show FROM user_message ORDER BY u_message_id DESC limit ?,? ;`;
 
     var p = Number((page-1)*size), s = Number(size);
+    try {
     
-    pool.query(sql, [p,s], (err, result) => {
-        if (err) throw err;
-        console.log('admin_all_message:', result);
+        pool.query(sql, [p,s], (err, result) => {
+            if (err) throw err;
+            console.log('admin_all_message:', result);
 
-        if( result.length > 0 ){
-            res.send({'code':1,'msg':result});
-        }else    
-            res.send({'code':0,'msg':result})
-    })
+            if( result.length > 0 ){
+                res.send({'code':1,'msg':result});
+            }else    
+                res.send({'code':0,'msg':result})
+        })
 
+    } catch (e) {
+        console.log('admin_all_message--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 // 管理员删除评论
@@ -535,14 +563,18 @@ router.get('/admin_msg_delete', (req, res) => {
     };
     
     var sql = `DELETE FROM user_message WHERE blog_id = ? AND u_message_id = ? `;
-    pool.query(sql,[blog_id,u_message_id],(err,resul)=> {
-        if (err) throw err;
-        if(resul.affectedRows > 0)
-            res.send({ 'code': 1 });
-        else 
-            res.send({ 'code': 0 ,'msg':resul});
-    })
-
+    try {
+        pool.query(sql,[blog_id,u_message_id],(err,resul)=> {
+            if (err) throw err;
+            if(resul.affectedRows > 0)
+                res.send({ 'code': 1 });
+            else 
+                res.send({ 'code': 0 ,'msg':resul});
+        })
+    } catch (e) {
+        console.log('admin_msg_delete--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 // 管理员回复留言
@@ -565,18 +597,22 @@ router.post('/admin_reply_message', (req, res) => {
             return
         };
         var sql = 'UPDATE user_message SET author_message= ? WHERE blog_id = ? AND u_message_id = ? '
+        try {
+            pool.query(sql,[reply,blog_id,u_message_id],(err,result)=>{
+                if (err) throw err;
 
-        pool.query(sql,[reply,blog_id,u_message_id],(err,result)=>{
-            if (err) throw err;
+                console.log('admin_reply_message--:', result)
+                if (result.affectedRows > 0) {
+                    res.send({ 'code': 1 })
+                } else {
+                    res.send({ 'code': 0 })
+                }
+            })
 
-            console.log('admin_reply_message--:', result)
-            if (result.affectedRows > 0) {
-                res.send({ 'code': 1 })
-            } else {
-                res.send({ 'code': 0 })
-            }
-        })
-
+        } catch (e) {
+            console.log('admin_reply_message--catcherr==>>', e);
+            res.send({'code':0,'msg':'未知错误'});
+        }
     })
 })
 
@@ -598,25 +634,28 @@ router.get('/admin_to_top_message', (req, res) => {
     };
     var sql = `SELECT is_top FROM user_message WHERE blog_id = ? AND u_message_id = ?`
     var sql2 = `UPDATE user_message SET is_top= ? WHERE blog_id = ? AND u_message_id = ?`;
-    pool.query(sql,[blog_id,u_message_id],(err,resul)=> {
-        if (err) throw err;
-        if(resul.length > 0){
-            let isTop = resul[0].is_top;
+    try {
+        pool.query(sql,[blog_id,u_message_id],(err,resul)=> {
+            if (err) throw err;
+            if(resul.length > 0){
+                let isTop = resul[0].is_top;
 
-            isTop ? isTop = 0: isTop = 1;
-            pool.query(sql2,[isTop,blog_id,u_message_id],(err,result)=> {
-                if (err) throw err;
-                if(result.affectedRows > 0)
-                    res.send({ 'code': 1 ,msg:{'isTop':isTop}});
-                else 
-                    res.send({ 'code': 0 ,'msg':result});
-            })
-        }else {
-            res.send({ 'code': 0 ,'msg':resul});
-        }
-
-    })
-
+                isTop ? isTop = 0: isTop = 1;
+                pool.query(sql2,[isTop,blog_id,u_message_id],(err,result)=> {
+                    if (err) throw err;
+                    if(result.affectedRows > 0)
+                        res.send({ 'code': 1 ,msg:{'isTop':isTop}});
+                    else 
+                        res.send({ 'code': 0 ,'msg':result});
+                })
+            }else {
+                res.send({ 'code': 0 ,'msg':resul});
+            }
+        })
+    } catch (e) {
+        console.log('admin_to_top_message--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
 })
 
 
