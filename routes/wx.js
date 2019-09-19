@@ -3,14 +3,14 @@ var router = express.Router();
 var pool = require("../pool");
 const crypto = require('crypto'); // node内置的加密模块
 const axios = require('axios');
-const wx_access_token = require('../src/wx_access_token');
+// const wx_access_token = require('../src/wx_access_token');
 
 const config = {
-    wechat: {
-        appID: 'wxb2cc31675638526f',
-        AppSecret: 'b9658d5f13d98a90a4e99a2b14cc79f4',
-        token: '2333'
-    },
+    // wechat: {
+    //     appID: 'wxb2cc31675638526f',
+    //     AppSecret: 'b9658d5f13d98a90a4e99a2b14cc79f4',
+    //     token: '2333'
+    // },
     mini_programs: {
         appID: 'wx4d78fee2c7b83f97',
         AppSecret: 'fd79eb19ce1811f3f7964f91bf2435c5',
@@ -24,42 +24,28 @@ const config = {
     }
 
 }
-// 小程序 获取用户 openId
-async function getUserOpenId(code) {
-    try {
 
-        const href = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.mini_programs.appID}&secret=${config.mini_programs.AppSecret}&js_code=${code}&grant_type=authorization_code`;
-
-        const { status, data } = await axios.get(href);
-
-        return data;
-    } catch (e) {
-        console.log('getUserOpenId出错：', e);
-    }
-}
-function sha1(str) {
-    var sha = crypto.createHash("sha1");
-    sha.update(str);
-    str = sha.digest("hex");
-    return str;
-}
-//  公众号 token 验证
+//  公众号 token 验证 ---来自公众号 的 请求 
 router.get("/token", (req, res) => {
     console.log('wx.test.req', req);
     var query = req.query;
 
-    var signature = query.signature;
-    var echostr = query.echostr;
-    var timestamp = query['timestamp'];
-    var nonce = query.nonce;
-    var oriArray = new Array();
+    var signature = query.signature,
+        echostr = query.echostr,
+        timestamp = query['timestamp'],
+        nonce = query.nonce,
+        oriArray = new Array();
+
     oriArray[0] = nonce;
     oriArray[1] = timestamp;
     oriArray[2] = "2333"
     oriArray.sort();
+    
     var original = oriArray.join('');
+
     console.log("Original str : " + original);
     console.log("Signature : " + signature);
+
     var scyptoString = sha1(original);
     if (signature == scyptoString) {
         res.send(echostr);
@@ -70,41 +56,61 @@ router.get("/token", (req, res) => {
     }
 
 })
+function sha1(str) {
+    var sha = crypto.createHash("sha1");
+    sha.update(str);
+    str = sha.digest("hex");
+    return str;
+}
+//   从微信服务器 拿 用户的openId  
+async function getUserOpenId(code) {
+    try {
+        const href = `https://api.weixin.qq.com/sns/jscode2session?appid=${config.mini_programs.appID}&secret=${config.mini_programs.AppSecret}&js_code=${code}&grant_type=authorization_code`;
 
-//get 用户openId 
+        const { status, data } = await axios.get(href);
+
+        return data;
+    } catch (e) {
+        console.log('getUserOpenId出错：', e);
+    }
+}
+
+//  获取用户 openId
 router.post('/user_openId', (req, res) => {
 
     req.on("data", function (buf) {
         var data = JSON.parse(buf.toString());
 
         console.log('this req', data)
-        if (!data) {
+        if (!data.code) {
             res.send({'code':0,'msg':'参数错误'});
             return
         };
 
         getUserOpenId(data.code).then(result => {
-            console.log(result, '====');
+            console.log(result, '====getUserOpenId');
+            /*
+             *  { session_key: '82p9cq5YLPTq6CUb7ITqeQ==',
+             *  openid: 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ' }
+             */
             var sql = 'SELECT uid  from user_info where openId = ?'
             pool.query(sql, [result.openid], (err, resul) => {
                 if (err) throw err;
                 console.log('getUserOpenId result:', resul);
                 resul.length > 0 ?
-                    result.hasInfoData = true
+                    res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':true,'canAddReview':false} })
                     :
-                    result.hasInfoData = false
-
-                res.send({ 'code': 1, msg: result })
+                    res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':false,'canAddReview':false} })
 
             })
         });
 
     })
 })
+
 /** 保存用户openId 
- * @param openId       openId
- * @param uname       uname
- * @param avatarUrl       avatarUrl
+ * @param openid       openId
+ * @param userInfo       userInfo
  *      
  */
 router.post('/add_user_info_data', (req, res) => {
@@ -112,13 +118,15 @@ router.post('/add_user_info_data', (req, res) => {
     req.on("data", function (buf) {
         var data = JSON.parse(buf.toString());
         console.log('add_user_info_data', data);
-        if (!data) {
+        const { openid, userInfo } = data;
+        const { nickName, gender, language, city, province, country, avatarUrl } = userInfo;
+        if (!openid || !avatarUrl) {
             res.send({'code':0,'msg':'参数错误'});
             return
         };
 
-        const sql = `INSERT INTO user_info ( openId , uname, avatarUrl ) VALUES( ? , ? , ? )`
-        pool.query(sql, [data.openid, data.userInfo.nickName, data.userInfo.avatarUrl], (err, result) => {
+        const sql = `INSERT INTO user_info (openId, uname, gender, language, city, province, country, avatarUrl ) VALUES( ?,? , ? , ? ,?,?,?,? )`
+        pool.query(sql, [openid,nickName, gender, language, city, province, country, avatarUrl], (err, result) => {
             if (err) throw err;
             console.log('add_user_info_data result:', result);
             if (result.affectedRows > 0) {
@@ -399,7 +407,7 @@ router.get('/current_u_msg_all', (req, res) => {
     const { openId } = query;
     console.log('current_u_msg_all:', openId);
 
-    var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title FROM user_message WHERE openid = ? `;
+    var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title FROM user_message WHERE openid = ? ORDER BY u_message_id DESC`;
     
     pool.query(sql, [openId], (err, result) => {
         if (err) throw err;

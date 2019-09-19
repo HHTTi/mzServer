@@ -4,8 +4,8 @@ const axios = require('axios');
 
 class wx_access_token {
     /**
-     * @param appID       开发者ID(AppID)
-     * @param appSecret   开发者密码(AppSecret)
+     * @param appID        (AppID)
+     * @param appSecret    密码(AppSecret)
      */
     constructor(appID,appSecret) {
         this.appID = appID;
@@ -51,7 +51,8 @@ class wx_access_token {
                 if(data.access_token && data.expires_in) {
                     //将access_token保存到本地文件中
                     accessTokenFile.access_token = data.access_token;
-                    accessTokenFile.expires_time = Date.now() + (parseInt(data.expires_in) - 180) * 1000;               //access_token 有效期1小时57分钟
+                    accessTokenFile.expires_time = Date.now() + (parseInt(data.expires_in) - 180) * 1000;
+                    // 有效期1小时57分钟
                     //将access_token写到本地文件中
                     const file = path.resolve('config','token',`${this.appID}.json`);
                     fe.ensureFileSync(file);
@@ -71,7 +72,6 @@ class wx_access_token {
     }
     
      /**
-     * https://mp.weixin.qq.com/wiki?t=resource/res_main&id=mp1444738729
      * 获取素材列表
      * @param type     素材的类型，图片（image）、视频（video）、语音 （voice）、图文（news）
      * @param offset   从全部素材的该偏移位置开始返回，0表示从第一个素材 返回

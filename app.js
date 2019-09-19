@@ -5,9 +5,8 @@ const cors = require("cors")
 const qs = require('querystring')
 const path = require('path');
 const session = require('express-session')
-const https = require('https');
 
-//  wx 公众号  access_token
+//  wx 公众号  
 const config = {
     wechat: { 
     //      订阅号 -- 人为拙
@@ -20,7 +19,7 @@ const config = {
         token: '2333'  
     }
 }
-const wx_access_token = require('./src/wx_access_token');
+// const wx_access_token = require('./src/wx_access_token');
 const wx_subscription = require('./src/wx_subscription');
 
 // 获取文章列表, 写入数据库；

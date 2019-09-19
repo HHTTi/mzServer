@@ -2,7 +2,7 @@
 
 var pool=require("../pool");
 const sqlstring = require('sqlstring');     //sql占位符模块
-const axios = require('axios');
+
 const wx_access_token = require('./wx_access_token');
 const moment = require('moment');
 //获取最新的前20篇图文文章
