@@ -236,6 +236,81 @@ router.post('/article_user_message', (req, res) => {
         }
     })
 })
+router.post('/article_user_message_and_likes', (req, res) => {
+    req.on("data", function (buf) {
+        const data = JSON.parse(buf.toString());
+        const { openId, blog_id } = data
+        console.log('article_user_message 评论列表:', data);
+        if (!blog_id) {
+            res.send({'code':0,'msg':'参数错误'});
+            return
+        };
+
+        Promise.all([article_user_message_sql(openId, blog_id), current_u_msg_like_sql(openId, blog_id)])
+        .then((value) => {
+            console.log('Promise.all:',message,likes);
+            var message = value[0],likes = value[1];
+            for (let i = 0; i < message.length;i++){
+                likes.forEach(ele => {
+                    if(ele.u_message_id === message[i].u_message_id) 
+                    message[i].isParised = true ;
+                })
+            }
+
+            res.send({'code':1,'msg':message});
+        })
+        .catch((err) => {
+            console.log('err:',err);
+            res.send({'code':0,'msg':'未知错误'});
+        });
+        
+    })
+})
+
+// 获取文章的 评论列表 点赞数量 用户点赞 sql
+function article_user_message_sql(openId, blog_id){
+    return new Promise((resolve,reject) => {
+        var sql = `SELECT u_message_id,openId,user_nickName,user_avatarUrl,user_message,author_message,is_top,is_show,like_number FROM user_message WHERE blog_id = ? ORDER BY like_number DESC`
+        try {
+            pool.query(sql, [blog_id], (err, result) => {
+                if (err) throw err;
+                console.log('article_user_message sql:', result);
+                // result.forEach(ele => {
+                //     if (!openId && ele.openId == openId) {
+                //         ele.isCurrentUser = true;
+                //     }
+                //     delete ele.openId;
+                // });
+                // res.send({ 'code': 1, 'msg': result })
+                resolve(result)
+            })
+        } catch (e) {
+            console.log('article_user_message--catcherr==>>', e);
+            reject({'code':0,'msg':'article_user_message_sql未知错误'});
+        }
+    })
+}
+
+// 当前用户点的赞 sql
+function current_u_msg_like_sql(openId, blog_id) {
+    return new Promise((resolve, reject) => {
+        var sql2 = `SELECT u_message_id FROM user_message_likes WHERE openid = ? AND blog_id = ? `;
+        try {
+            pool.query(sql2, [openId,blog_id], (err, result) => {
+                if (err) throw err;
+                console.log('getLikes:', result);
+                resolve(result);
+                // if( result.length > 0 )
+                //     res.send({'code':1,'msg':result});
+                // else    
+                //     res.send({'code':0,'msg':result})
+            })
+        } catch (e) {
+            console.log('getLikes--catcherr==>>', e);
+            reject({'code':0,'msg':'未知错误'});
+        }
+    })
+}
 
 // 提交评论 
 /**
