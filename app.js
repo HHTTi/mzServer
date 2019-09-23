@@ -51,10 +51,21 @@ app.listen(3000);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-//小程序路由
-app.get('/text', (req, res) => {
-    console.log('get.text',req.query);
-    res.send('getsuccess')
+// 更新文章列表
+app.get('/update_wx_subscription', (req, res) => {
+    let query = req.query ;
+    console.log('update_wx_subscription:', query);
+    
+    const { appID, AppSecret, token } = config.wechat;
+
+    if( query.token && query.token === token ){
+
+        new wx_subscription(appID,AppSecret).syncLatestArticle();
+        res.send({'code':1,'msg':'updateSuccess'})
+    }else{
+        res.send({'code':0})
+    }
+   
 })
 
 /*路由器路由*/

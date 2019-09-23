@@ -16,12 +16,14 @@ const config = {
         AppSecret: 'fd79eb19ce1811f3f7964f91bf2435c5',
     },
     admin_openid:{
-        openId:'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ',//qiu
+        // openId:'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ',//qiu
+        openId:'oJ4kB5ZIbtfEPwdBkt4bK7g1PMGE' ,// A-Hello
 
     },
     simple_token:{
         admin:'simple_token'
-    }
+    },
+    canAddReview: true
 
 }
 
@@ -62,6 +64,8 @@ function sha1(str) {
     str = sha.digest("hex");
     return str;
 }
+
+
 //   从微信服务器 拿 用户的openId  
 async function getUserOpenId(code) {
     try {
@@ -75,52 +79,52 @@ async function getUserOpenId(code) {
     }
 }
 
-//  获取用户 openId
-router.post('/user_openId', (req, res) => {
 
+/** 获取用户 openId
+ * @param code       wx.login获得的code  
+ *                   换取用户openId
+ */
+router.post('/user_openId', (req, res) => {
     req.on("data", function (buf) {
         var data = JSON.parse(buf.toString());
 
-        console.log('this req', data)
+        console.log('user_openId:', data)
         if (!data.code) {
             res.send({'code':0,'msg':'参数错误'});
             return
         };
-        try {
-            getUserOpenId(data.code).then(result => {
-                console.log(result, '====getUserOpenId');
-                /*
-                *  { session_key: '82p9cq5YLPTq6CUb7ITqeQ==',
-                *  openid: 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ' }
-                */
-                var sql = 'SELECT uid  from user_info where openId = ?'
-                pool.query(sql, [result.openid], (err, resul) => {
-                    if (err) throw err;
-                    console.log('getUserOpenId result:', resul);
-                    resul.length > 0 ?
-                        res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':true,'canAddReview':false} })
-                        :
-                        res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':false,'canAddReview':false} })
-
-                })
+        getUserOpenId(data.code).then(result => {
+            console.log(result, '====getUserOpenId');
+            /*
+            * result: { session_key: '82p9cq5YLPTq6CUb7ITqeQ==',openid: 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ' }
+            */
+            var sql = 'SELECT uid  from user_info where openId = ?'
+            pool.query(sql, [result.openid], (err, resul) => {
+                if (err) throw err;
+                console.log('getUserOpenId result:', resul);
+                resul.length > 0 ?
+                    res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':true,'canAddReview':config.canAddReview} })
+                    :
+                    res.send({ 'code': 1, 'msg': {'openid':result.openid,'hasInfoData':false,'canAddReview':config.canAddReview} })
             })
-        } catch (e) {
-            console.log('user_openId--catcherr==>>', e) ;
+        }).catch( e => {
+            console.log('user_openId--catcherr==>>', e);
             res.send({'code':0,'msg':'未知错误'});
-        }
+        })
     })
 })
 
 /** 保存用户openId 
- * @param openid       openId
- * @param userInfo       userInfo
+ * @param openid            openId
+ * @param userInfo          用户信息
  *      
  */
 router.post('/add_user_info_data', (req, res) => {
-
     req.on("data", function (buf) {
         var data = JSON.parse(buf.toString());
-        console.log('add_user_info_data', data);
+
+        console.log('add_user_info_data:', data);
+
         const { openid, userInfo } = data;
         const { nickName, gender, language, city, province, country, avatarUrl } = userInfo;
         if (!openid || !avatarUrl) {
@@ -133,11 +137,10 @@ router.post('/add_user_info_data', (req, res) => {
             pool.query(sql, [openid,nickName, gender, language, city, province, country, avatarUrl], (err, result) => {
                 if (err) throw err;
                 console.log('add_user_info_data result:', result);
-                if (result.affectedRows > 0) {
+                if (result.affectedRows > 0) 
                     res.send({ 'code': 1 })
-                } else {
+                else 
                     res.send({ 'code': 0 })
-                }
             })
         } catch (e) {
             console.log('add_user_info_data--catcherr==>>', e);
@@ -163,7 +166,6 @@ router.post('/article_list', (req, res) => {
                 if (err) throw err;
                 console.log('article_list_result:', result)
                 if (result.length > 0) { 
-
                     res.send({ 'code': 1, 'msg': result })
                 } else
                     res.send({ 'code': 0, 'msg': 'no article' })
@@ -390,7 +392,7 @@ router.get('/current_u_msg_like', (req, res) => {
     }
 })
 
-// 用户是否点过赞
+// 查询用户是否点过赞
 function can_add_u_msg_like(openid,u_message_id, cb) {
     var sql = `SELECT u_message_id FROM user_message_likes WHERE openid = ? AND u_message_id = ?`;
     pool.query(sql, [openid,u_message_id], (err, result) => {
@@ -401,6 +403,7 @@ function can_add_u_msg_like(openid,u_message_id, cb) {
 
     })
 }
+
 // 修改 user_message 中 点赞数
 function change_like_number(openId,u_message_id,number ,cb) {
     var sql2 = `SELECT like_number FROM user_message WHERE u_message_id = ? `;
@@ -545,23 +548,28 @@ router.get('/current_u_msg_delete', (req, res) => {
     }
 })
 
-// 管理员登录后台
-/**
+
+/****************  管理员 API  ****************/ 
+
+
+
+
+/**管理员登录后台
 * @param openId                用户openId
 * 
 */
 router.get('/is_admin', (req, res) => {
-    var query = req.query ;
-    if (!query) {
-        res.send({'code':0,'msg':'参数错误'});
-        return
-    };
-
+    let query = req.query ;
+    
     const { openId } = query;
     console.log('is_admin:',openId === config.admin_openid.openId,query);
 
+    if (!openId) {
+        res.send({'code':0,'msg':'参数错误'});
+        return
+    };
     if(openId === config.admin_openid.openId){
-        res.send({'code':1})
+        res.send({'code':1,'msg':{'token':config.simple_token.admin}});
     }else {
         res.send({'code':0})
     }
@@ -582,8 +590,33 @@ router.post('/admin_login', (req, res) => {
 
     })
 })
-// 管理员查看评论
-/**
+
+/** 管理员获取文章
+*   
+*/ 
+router.get('/admin_get_article', (req, res) => {
+    let query = req.query ;
+    if (!query.token || query.token != config.simple_token.admin) {
+        res.send({'code':0,'msg':'参数错误'});
+        return
+    };
+    var sql = 'SELECT blog_id,title from article_list ORDER BY blog_id DESC LIMIT 3'
+    try {
+        pool.query(sql, (err, result) => {
+            if (err) throw err;
+            console.log('admin_get_article:', result)
+            if (result.length > 0) { 
+                res.send({ 'code': 1, 'msg': result })
+            } else
+                res.send({ 'code': 0, 'msg': 'no article' })
+        })
+    } catch (e) {
+        console.log('admin_get_article--catcherr==>>', e);
+        res.send({'code':0,'msg':'未知错误'});
+    }
+})
+
+/**  管理员查看评论
 * @param token          请求携带simple_token
 * @param page           页数
 * @param size           条数
