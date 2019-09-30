@@ -5,6 +5,8 @@ const cors = require("cors")
 const qs = require('querystring')
 const path = require('path');
 const session = require('express-session')
+var bodyParser = require('body-parser');
+
 
 //  wx 公众号  
 const config = {
@@ -17,15 +19,20 @@ const config = {
         appID: 'wxa34cf52c5af17457', 
         AppSecret: '6b6b785d9b3523d12d87e4e76bbfa40d',  
         token: '2333'  
-    }
+    },
+    updataTime: 1000*60*60*24
 }
-// const wx_access_token = require('./src/wx_access_token');
+
 const wx_subscription = require('./src/wx_subscription');
 
-// 获取文章列表, 写入数据库；
-const sub = new wx_subscription(config.wechat.appID,config.wechat.AppSecret);
+// 获取文章列表, 写入数据库;
+//new wx_subscription(config.wechat.appID,config.wechat.AppSecret).syncLatestArticle();
 
-    sub.syncLatestArticle();
+setInterval(()=> {
+    new wx_subscription(config.wechat.appID,config.wechat.AppSecret).syncLatestArticle();
+},config.updataTime)
+
+
 
 
     
@@ -33,12 +40,19 @@ const sub = new wx_subscription(config.wechat.appID,config.wechat.AppSecret);
 var index = require("./routes/index");
 var products = require("./routes/products");
 var users = require("./routes/users");
+var upload = require("./routes/upload");
+
 // 小程序 api
 var wx = require("./routes/wx");
 
 var app = express();
 
-app.use(express.static('public'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -49,7 +63,19 @@ app.use(session({
 }));
 app.listen(3000);
 
-app.use(express.static(path.join(__dirname, 'public')));
+
+
+
+
+/*路由器路由*/
+app.use("/index", index);
+app.use("/products", products);
+app.use("/users", users);
+app.use("/wx", wx);
+app.use("/upload", upload);
+
+
+
 
 // 更新文章列表
 app.get('/update_wx_subscription', (req, res) => {
@@ -67,9 +93,3 @@ app.get('/update_wx_subscription', (req, res) => {
     }
    
 })
-
-/*路由器路由*/
-app.use("/index", index);
-app.use("/products", products);
-app.use("/users", users);
-app.use("/wx", wx);
