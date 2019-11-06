@@ -7,8 +7,11 @@ const path = require('path');
 const session = require('express-session')
 var bodyParser = require('body-parser');
 
+const wx_subscription = require('./src/wx_subscription');
+const mp_remind_list_timer = require('./src/mp_remind_list_timer')
 
-//  wx 公众号  
+const CronJob = require('cron').CronJob
+
 const config = {
     wechat: { 
     //      订阅号 -- 人为拙
@@ -20,20 +23,25 @@ const config = {
         AppSecret: '6b6b785d9b3523d12d87e4e76bbfa40d',  
         token: '2333'  
     },
+    mp: {
+        appID: 'wx33f95de10fd07a5f', 
+        AppSecret: '320148ec073b171d80a5a33b6d24d99b',  
+        token: '2333'  
+    },
     updataTime: 1000*60*60*24
 }
 
-const wx_subscription = require('./src/wx_subscription');
 
 // 获取文章列表, 写入数据库;
-//new wx_subscription(config.wechat.appID,config.wechat.AppSecret).syncLatestArticle();
+    
+new CronJob('1 1 0 * * *', function() {
+    console.log('You will see this message 1 1 0 * * *:',this);
 
-setInterval(()=> {
     new wx_subscription(config.wechat.appID,config.wechat.AppSecret).syncLatestArticle();
-},config.updataTime)
 
+    new mp_remind_list_timer(config.mp.appID,config.mp.AppSecret).getRemindList()
 
-
+    }, null, true, 'Asia/Shanghai');
 
     
 /*引入路由模块*/

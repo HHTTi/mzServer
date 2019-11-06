@@ -1,6 +1,6 @@
 // 获取 wx 公众号 access_token
 
-var pool=require("../pool");
+const pool=require("../pool");
 const sqlstring = require('sqlstring');     //sql占位符模块
 
 const wx_access_token = require('./wx_access_token');
