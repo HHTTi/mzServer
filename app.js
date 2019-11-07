@@ -11,9 +11,14 @@ const bodyParser = require('body-parser');
 const log4js= require('./src/middleware/logger')
 
 // const logger = log4js.getLogger()//根据需要获取logger
+const errlog = log4js.getLogger('err')
+const infolog = log4js.getLogger('info')
+
 
 const wx_subscription = require('./src/wx_subscription');
 const mp_remind_list_timer = require('./src/mp_remind_list_timer')
+
+// const send_sms = require('./src/send_sms')
 
 const CronJob = require('cron').CronJob
 
@@ -38,15 +43,13 @@ const config = {
 
 
 
-
-
 // 获取文章列表, 写入数据库;
     
 new CronJob('1 0 0 * * *', function() {
     console.log('You will see this message 1 0 0 * * *:',this);
 
     new wx_subscription(config.wechat.appID,config.wechat.AppSecret).syncLatestArticle();
-
+    
     new mp_remind_list_timer(config.mp.appID,config.mp.AppSecret).getRemindList()
 
     }, null, true, 'Asia/Shanghai');
@@ -103,13 +106,30 @@ app.use("/upload", upload);
 // 更新文章列表
 app.get('/update_wx_subscription', (req, res) => {
     let query = req.query ;
-    console.log('update_wx_subscription:', query);
+    infolog.info('update_wx_subscription:', query);
     
     const { appID, AppSecret, token } = config.wechat;
 
     if( query.token && query.token === token ){
 
         new wx_subscription(appID,AppSecret).syncLatestArticle();
+        res.send({'code':1,'msg':'updateSuccess'})
+    }else{
+        res.send({'code':0})
+    }
+   
+})
+// 更新提醒列表
+app.get('/update_mp_subscribe_list', (req, res) => {
+    let query = req.query ;
+    infolog.info('update_mp_subscribe_list:', query);
+    
+    const { appID, AppSecret, token } = config.mp;
+
+    if( query.token && query.token === token ){
+
+        new mp_remind_list_timer(config.mp.appID,config.mp.AppSecret).getRemindList()
+
         res.send({'code':1,'msg':'updateSuccess'})
     }else{
         res.send({'code':0})

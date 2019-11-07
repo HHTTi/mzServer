@@ -3,6 +3,7 @@ const log4js = require('log4js')
  
 log4js.configure({
     replaceConsole: true,
+    disableClustering: true,
     appenders: {
         stdout: {//控制台输出
             type: 'stdout'

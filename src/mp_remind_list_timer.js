@@ -7,6 +7,7 @@ const axios = require('axios')
 
 const wx_access_token = require('./wx_access_token');
 const mp_subscribe_messageg = require('./mp_subscribe_message')
+const send_sms = require('./send_sms')
 const calendarJs = require('./compoments/calendar')
 // const ca = new calendarJs
 
@@ -18,6 +19,7 @@ class mp_remind_list_timer {
     constructor(appID,appSecret){
         this.wx_access_token = new wx_access_token(appID,appSecret)
         this.mp_subscribe_messageg = new mp_subscribe_messageg(appID,appSecret)
+        this.send_sms = new send_sms()
         this.ca = new calendarJs
     }
 
@@ -80,7 +82,7 @@ class mp_remind_list_timer {
         }
         list.map(item => {
 
-            let { birthday, calendar, content, isLeapMonth, nickname, openid, remind_date, remind_time, _id, tmplIds } = JSON.parse(item),
+            let { birthday, calendar, content, isLeapMonth, nickname, openid, remind_date, phone, remind_time, _id, tmplIds } = JSON.parse(item),
                 next;
 
             next = this.ca.getBirthday(calendar, birthday, isLeapMonth);
@@ -115,7 +117,7 @@ class mp_remind_list_timer {
                 
                 if( thisHourse < Number(t[0]) || (thisHourse === Number(t[0]) && thisMinutes < Number(t[1])) ) {
 
-                    this.creatCronFn(time, tmplIds, nextBirthday, content, nickname, openid, _id)
+                    this.creatCronFn(time, tmplIds, nextBirthday, content, nickname, phone, openid, _id)
                     code = 1
                 }
             }
@@ -123,8 +125,8 @@ class mp_remind_list_timer {
         })
         return code;
     }
-    async creatCronFn(time, tmplIds, nextBirthday, content, nickname, openid, _id){
-        let _this = this;
+    async creatCronFn(time, tmplIds, nextBirthday, content, nickname, phone, openid, _id){
+        let _this = this,smsres;
         infolog.info('creat  mp subscribeMessage at:',time)
         return new CronJob(time, async function () {
 
@@ -146,8 +148,16 @@ class mp_remind_list_timer {
                   }
                 },
                 template_id:tmplIds
-            }
+            },
+            params = [nextBirthday,nickname,content];
+
+            phone = Number(phone)
+
             try {
+                if(_this.isPhone(phone)) {
+                    smsres = await _this.send_sms.tcSms(phone,params)
+                    
+                }
                 const result = await _this.mp_subscribe_messageg.send(data)
 
                 infolog.info('try send subscribeMessage, result:',result)
@@ -160,6 +170,15 @@ class mp_remind_list_timer {
             this.stop()
           }, null, true, 'Asia/Shanghai');
 
+    }
+
+    isPhone(phone) {
+        let r=/^[1][3,4,5,6,7,8,9][0-9]{9}$/;
+        if (!r.test(phone)) {
+            return false;
+        } else {
+            return true;
+        }
     }
 
 }
