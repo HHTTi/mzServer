@@ -5,6 +5,11 @@ const crypto = require('crypto'); // node内置的加密模块
 const axios = require('axios');
 // const wx_access_token = require('../src/wx_access_token');
 
+const log4js = require('../src/middleware/logger')
+const errlog = log4js.getLogger('err')
+const infolog = log4js.getLogger('info')
+
+
 const config = {
     // wechat: {
     //     appID: 'wxb2cc31675638526f',
@@ -29,7 +34,7 @@ const config = {
 
 //  公众号 token 验证 ---来自公众号 的 请求 
 router.get("/token", (req, res) => {
-    console.log('wx.test.req', req);
+    infolog.info('wx.test.req', req);
     var query = req.query;
 
     var signature = query.signature,
@@ -45,16 +50,16 @@ router.get("/token", (req, res) => {
 
     var original = oriArray.join('');
 
-    console.log("Original str : " + original);
-    console.log("Signature : " + signature);
+    infolog.info("Original str : " + original);
+    infolog.info("Signature : " + signature);
 
     var scyptoString = sha1(original);
     if (signature == scyptoString) {
         res.send(echostr);
-        console.log("Confirm and send echo back");
+        infolog.info("Confirm and send echo back");
     } else {
         res.send("false");
-        console.log("Failed!");
+        infolog.info("Failed!");
     }
 
 })
@@ -75,7 +80,7 @@ async function getUserOpenId(code) {
 
         return data;
     } catch (e) {
-        console.log('getUserOpenId出错：', e);
+        errlog.error('getUserOpenId出错：', e);
     }
 }
 
@@ -86,28 +91,28 @@ async function getUserOpenId(code) {
  */
 router.post('/user_openId', (req, res) => {
     let data = req.body;
-    console.log('user_openId:', data);
+    infolog.info('user_openId:', data);
 
     if (!data.code) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
     };
     getUserOpenId(data.code).then(result => {
-        console.log(result, '====getUserOpenId');
+        infolog.info(result, '====getUserOpenId');
         /*
         * result: { session_key: '82p9cq5YLPTq6CUb7ITqeQ==',openid: 'oJ4kB5Zk7tbkdcv0Fbd2SHffrpyQ' }
         */
         var sql = 'SELECT uid  from user_info where openId = ?'
         pool.query(sql, [result.openid], (err, resul) => {
             if (err) throw err;
-            console.log('getUserOpenId result:', resul);
+            infolog.info('getUserOpenId result:', resul);
             resul.length > 0 ?
                 res.send({ 'code': 1, 'msg': { 'openid': result.openid, 'hasInfoData': true, 'canAddReview': config.canAddReview } })
                 :
                 res.send({ 'code': 1, 'msg': { 'openid': result.openid, 'hasInfoData': false, 'canAddReview': config.canAddReview } })
         })
     }).catch(e => {
-        console.log('user_openId--catcherr==>>', e);
+        errlog.error('user_openId--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     })
 })
@@ -148,7 +153,7 @@ router.post('/add_user_info_data_test', async (req, res) => {
 router.post('/add_user_info_data', (req, res) => {
     let data = req.body;
 
-    console.log('add_user_info_data:', data);
+    infolog.info('add_user_info_data:', data);
 
     const { openid, userInfo } = data;
     const { nickName, gender, language, city, province, country, avatarUrl } = userInfo;
@@ -161,14 +166,14 @@ router.post('/add_user_info_data', (req, res) => {
     try {
         pool.query(sql, [openid, nickName, gender, language, city, province, country, avatarUrl], (err, result) => {
             if (err) throw err;
-            console.log('add_user_info_data result:', result);
+            infolog.info('add_user_info_data result:', result);
             if (result.affectedRows > 0)
                 res.send({ 'code': 1 })
             else
                 res.send({ 'code': 0 })
         })
     } catch (e) {
-        console.log('add_user_info_data--catcherr==>>', e);
+        errlog.error('add_user_info_data--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 
@@ -178,7 +183,7 @@ router.post('/add_user_info_data', (req, res) => {
 // 获取文章列表
 router.post('/article_list', (req, res) => {
     let data = req.body;
-    console.log('article_list', data, data.name);
+    infolog.info('article_list', data, data.name);
     if (!data) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -188,21 +193,21 @@ router.post('/article_list', (req, res) => {
     try {
         pool.query(sql, (err, result) => {
             if (err) throw err;
-            console.log('article_list_result:', result.length )
+            infolog.info('article_list_result:', result.length )
             if (result.length > 0) {
                 res.send({ 'code': 1, 'msg': result })
             } else
                 res.send({ 'code': 0, 'msg': 'no article' })
         })
     } catch (e) {
-        console.log('article_list--catcherr==>>', e);
+        errlog.error('article_list--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
 // 获取文章
 router.get("/article_item", (req, res) => {
     var query = req.query;
-    console.log('article_item:', query);
+    infolog.info('article_item:', query);
     const { blog_id } = query;
 
     if (!blog_id) {
@@ -214,7 +219,7 @@ router.get("/article_item", (req, res) => {
     try {
         pool.query(sql, [blog_id], (err, result) => {
             if (err) throw err;
-            console.log('SELECT title,url,create_time from article_list:', result);
+            infolog.info('SELECT title,url,create_time from article_list:', result);
 
             if (result.length > 0)
                 res.send({ 'code': 1, 'msg': result[0] });
@@ -222,7 +227,7 @@ router.get("/article_item", (req, res) => {
                 res.send({ 'code': 0, 'msg': result })
         })
     } catch (e) {
-        console.log('article_item--catcherr==>>', e);
+        errlog.error('article_item--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -235,7 +240,7 @@ router.get("/article_item", (req, res) => {
 router.post('/article_user_message', (req, res) => {
     let data = req.body;
     const { openId, blog_id } = data
-    console.log('article_user_message 评论列表:', data);
+    infolog.info('article_user_message 评论列表:', data);
     if (!blog_id) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -245,7 +250,7 @@ router.post('/article_user_message', (req, res) => {
     try {
         pool.query(sql, [blog_id], (err, result) => {
             if (err) throw err;
-            console.log('article_user_message sql:', result);
+            infolog.info('article_user_message sql:', result);
             result.forEach(ele => {
                 if (!openId && ele.openId == openId) {
                     ele.isCurrentUser = true;
@@ -255,7 +260,7 @@ router.post('/article_user_message', (req, res) => {
             res.send({ 'code': 1, 'msg': result })
         })
     } catch (e) {
-        console.log('article_user_message--catcherr==>>', e);
+        errlog.error('article_user_message--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -263,7 +268,7 @@ router.post('/article_user_message', (req, res) => {
 router.post('/article_user_message_and_likes', (req, res) => {
     let data = req.body;
     const { openId, blog_id } = data
-    console.log('article_user_message 评论列表:', data);
+    infolog.info('article_user_message 评论列表:', data);
     if (!blog_id) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -271,7 +276,7 @@ router.post('/article_user_message_and_likes', (req, res) => {
 
     Promise.all([article_user_message_sql(openId, blog_id), current_u_msg_like_sql(openId, blog_id)])
         .then((value) => {
-            console.log('Promise.all:', message, likes);
+            infolog.info('Promise.all:', message, likes);
             var message = value[0], likes = value[1];
             for (let i = 0; i < message.length; i++) {
                 likes.forEach(ele => {
@@ -283,7 +288,7 @@ router.post('/article_user_message_and_likes', (req, res) => {
             res.send({ 'code': 1, 'msg': message });
         })
         .catch((err) => {
-            console.log('err:', err);
+            errlog.error('err:', err);
             res.send({ 'code': 0, 'msg': '未知错误' });
         });
 
@@ -296,7 +301,7 @@ function article_user_message_sql(openId, blog_id) {
         try {
             pool.query(sql, [blog_id], (err, result) => {
                 if (err) throw err;
-                console.log('article_user_message sql:', result);
+                infolog.info('article_user_message sql:', result);
                 // result.forEach(ele => {
                 //     if (!openId && ele.openId == openId) {
                 //         ele.isCurrentUser = true;
@@ -307,7 +312,7 @@ function article_user_message_sql(openId, blog_id) {
                 resolve(result)
             })
         } catch (e) {
-            console.log('article_user_message--catcherr==>>', e);
+            errlog.error('article_user_message--catcherr==>>', e);
             reject({ 'code': 0, 'msg': 'article_user_message_sql未知错误' });
         }
     })
@@ -320,7 +325,7 @@ function current_u_msg_like_sql(openId, blog_id) {
         try {
             pool.query(sql2, [openId, blog_id], (err, result) => {
                 if (err) throw err;
-                console.log('getLikes:', result);
+                infolog.info('getLikes:', result);
                 resolve(result);
                 // if( result.length > 0 )
                 //     res.send({'code':1,'msg':result});
@@ -328,7 +333,7 @@ function current_u_msg_like_sql(openId, blog_id) {
                 //     res.send({'code':0,'msg':result})
             })
         } catch (e) {
-            console.log('getLikes--catcherr==>>', e);
+            errlog.error('getLikes--catcherr==>>', e);
             reject({ 'code': 0, 'msg': '未知错误' });
         }
     })
@@ -345,7 +350,7 @@ function current_u_msg_like_sql(openId, blog_id) {
  */
 router.post('/add_user_message', (req, res) => {
     let data = req.body;
-    console.log('add_user_message:', data)
+    infolog.info('add_user_message:', data)
     if (!data) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -357,11 +362,11 @@ router.post('/add_user_message', (req, res) => {
     try {
         pool.query(sql2, [blog_id], (err, resul) => {
             if (err) throw err;
-            console.log('SELECT title FROM article_list:', resul)
+            infolog.info('SELECT title FROM article_list:', resul)
             if (resul.length > 0 && resul[0].title) {
                 pool.query(sql, [openId, blog_id, user_nickName, user_avatarUrl, user_message, resul[0].title], (err, result) => {
                     if (err) throw err;
-                    console.log('add_user_message--:', result)
+                    infolog.info('add_user_message--:', result)
                     if (result.affectedRows > 0) {
                         res.send({ 'code': 1 })
                     } else {
@@ -372,7 +377,7 @@ router.post('/add_user_message', (req, res) => {
         })
 
     } catch (e) {
-        console.log('add_user_message--catcherr==>>', e);
+        errlog.error('add_user_message--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -386,7 +391,7 @@ router.post('/add_user_message', (req, res) => {
 */
 router.get('/current_u_msg_like', (req, res) => {
     var query = req.query;
-    console.log('current_u_msg_like:', query);
+    infolog.info('current_u_msg_like:', query);
     if (!query) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -397,7 +402,7 @@ router.get('/current_u_msg_like', (req, res) => {
     try {
         pool.query(sql, [openId, blog_id], (err, result) => {
             if (err) throw err;
-            console.log('current_u_msg_like:', result);
+            infolog.info('current_u_msg_like:', result);
 
             if (result.length > 0)
                 res.send({ 'code': 1, 'msg': result });
@@ -405,7 +410,7 @@ router.get('/current_u_msg_like', (req, res) => {
                 res.send({ 'code': 0, 'msg': result })
         })
     } catch (e) {
-        console.log('current_u_msg_like--catcherr==>>', e);
+        errlog.error('current_u_msg_like--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -415,7 +420,7 @@ function can_add_u_msg_like(openid, u_message_id, cb) {
     var sql = `SELECT u_message_id FROM user_message_likes WHERE openid = ? AND u_message_id = ?`;
     pool.query(sql, [openid, u_message_id], (err, result) => {
         if (err) throw err;
-        console.log('can_add_u_msg_like:', result)
+        infolog.info('can_add_u_msg_like:', result)
 
         cb(result);
 
@@ -429,16 +434,16 @@ function change_like_number(openId, u_message_id, number, cb) {
 
     pool.query(sql2, [u_message_id], (error, result) => {
         if (error) throw err;
-        console.log('result[0]:', result[0])
+        infolog.info('result[0]:', result[0])
 
         let num = Number(result[0].like_number);
         num += Number(number);
 
-        console.log('like_number sql2:', num)
+        infolog.info('like_number sql2:', num)
 
         pool.query(sql3, [num, u_message_id], (err, resul) => {
             if (err) throw err;
-            console.log('sql3', resul);
+            infolog.info('sql3', resul);
             cb(resul);
         })
     })
@@ -453,7 +458,7 @@ function change_like_number(openId, u_message_id, number, cb) {
 */
 router.get('/add_u_msg_like', (req, res) => {
     var query = req.query, isSend = 0;
-    console.log('add_u_msg_like.req', query);
+    infolog.info('add_u_msg_like.req', query);
     if (!query) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -468,7 +473,7 @@ router.get('/add_u_msg_like', (req, res) => {
                 var sql4 = `DELETE FROM user_message_likes WHERE u_message_id = ? `;
                 pool.query(sql4, [u_message_id], (err, result) => {
                     if (err) throw err;
-                    console.log('DELETE FROM user_message_likes:', result);
+                    infolog.info('DELETE FROM user_message_likes:', result);
                     change_like_number(openId, u_message_id, -1, (resul) => {
                         if (resul.affectedRows > 0)
                             res.send({ 'code': 1 });
@@ -481,7 +486,7 @@ router.get('/add_u_msg_like', (req, res) => {
 
                 pool.query(sql, [openId, blog_id, u_message_id, like_date], (err, result) => {
                     if (err) throw err;
-                    console.log('add_u_msg_like sql1:', result);
+                    infolog.info('add_u_msg_like sql1:', result);
                     if (result.affectedRows > 0) {
                         isSend += 50;
                         isSend == 100 ? res.send({ 'code': 1 }) : ''
@@ -498,7 +503,7 @@ router.get('/add_u_msg_like', (req, res) => {
         })
 
     } catch (e) {
-        console.log('add_u_msg_like--catcherr==>>', e);
+        errlog.error('add_u_msg_like--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -516,13 +521,13 @@ router.get('/current_u_msg_all', (req, res) => {
     };
 
     const { openId } = query;
-    console.log('current_u_msg_all:', openId);
+    infolog.info('current_u_msg_all:', openId);
 
     var sql = `SELECT u_message_id,blog_id,user_message,author_message,like_number,title FROM user_message WHERE openid = ? ORDER BY u_message_id DESC`;
     try {
         pool.query(sql, [openId], (err, result) => {
             if (err) throw err;
-            console.log('current_u_msg_all:', result);
+            infolog.info('current_u_msg_all:', result);
 
             if (result.length > 0) {
                 res.send({ 'code': 1, 'msg': result });
@@ -531,7 +536,7 @@ router.get('/current_u_msg_all', (req, res) => {
                 res.send({ 'code': 0, 'msg': result })
         })
     } catch (e) {
-        console.log('current_u_msg_all--catcherr==>>', e);
+        errlog.error('current_u_msg_all--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -550,7 +555,7 @@ router.get('/current_u_msg_delete', (req, res) => {
         return
     };
     const { openId, blog_id, u_message_id } = query;
-    console.log('current_u_msg_delete:', query);
+    infolog.info('current_u_msg_delete:', query);
     var sql = `DELETE FROM user_message WHERE openId = ? AND blog_id = ? AND u_message_id = ? `;
     try {
         pool.query(sql, [openId, blog_id, u_message_id], (err, resul) => {
@@ -561,7 +566,7 @@ router.get('/current_u_msg_delete', (req, res) => {
                 res.send({ 'code': 0, 'msg': resul });
         })
     } catch (e) {
-        console.log('current_u_msg_delete--catcherr==>>', e);
+        errlog.error('current_u_msg_delete--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -580,7 +585,7 @@ router.get('/is_admin', (req, res) => {
     let query = req.query;
 
     const { openId } = query;
-    console.log('is_admin:', openId === config.admin_openid.openId, query);
+    infolog.info('is_admin:', openId === config.admin_openid.openId, query);
 
     if (!openId) {
         res.send({ 'code': 0, 'msg': '参数错误' });
@@ -595,7 +600,7 @@ router.get('/is_admin', (req, res) => {
 
 router.post('/admin_login', (req, res) => {
     let data = req.body;
-    console.log('admin_login:', data);
+    infolog.info('admin_login:', data);
     if (!data) {
         res.send({ 'code': 0, 'msg': '参数错误' });
         return
@@ -620,14 +625,14 @@ router.get('/admin_get_article', (req, res) => {
     try {
         pool.query(sql, (err, result) => {
             if (err) throw err;
-            console.log('admin_get_article:', result)
+            infolog.info('admin_get_article:', result)
             if (result.length > 0) {
                 res.send({ 'code': 1, 'msg': result })
             } else
                 res.send({ 'code': 0, 'msg': 'no article' })
         })
     } catch (e) {
-        console.log('admin_get_article--catcherr==>>', e);
+        errlog.error('admin_get_article--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -641,7 +646,7 @@ router.get('/admin_get_article', (req, res) => {
 router.get('/admin_all_message', (req, res) => {
     var query = req.query;
     const { token, page, size } = query;
-    console.log('admin_all_message:', token);
+    infolog.info('admin_all_message:', token);
 
     if (!query || token != config.simple_token.admin) {
         res.send({ 'code': 0, 'msg': '参数错误' });
@@ -655,7 +660,7 @@ router.get('/admin_all_message', (req, res) => {
 
         pool.query(sql, [p, s], (err, result) => {
             if (err) throw err;
-            console.log('admin_all_message:', result);
+            infolog.info('admin_all_message:', result);
 
             if (result.length > 0) {
                 res.send({ 'code': 1, 'msg': result });
@@ -664,7 +669,7 @@ router.get('/admin_all_message', (req, res) => {
         })
 
     } catch (e) {
-        console.log('admin_all_message--catcherr==>>', e);
+        errlog.error('admin_all_message--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -679,7 +684,7 @@ router.get('/admin_all_message', (req, res) => {
 router.get('/admin_msg_delete', (req, res) => {
     var query = req.query;
     const { blog_id, u_message_id, token } = query;
-    console.log('admin_msg_delete:', query);
+    infolog.info('admin_msg_delete:', query);
 
     if (!query || token != config.simple_token.admin) {
         res.send({ 'code': 0, 'msg': '参数错误' });
@@ -696,7 +701,7 @@ router.get('/admin_msg_delete', (req, res) => {
                 res.send({ 'code': 0, 'msg': resul });
         })
     } catch (e) {
-        console.log('admin_msg_delete--catcherr==>>', e);
+        errlog.error('admin_msg_delete--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -713,7 +718,7 @@ router.post('/admin_reply_message', (req, res) => {
     let data = req.body;
     const { blog_id, u_message_id, reply, token } = data;
 
-    console.log('admin_reply_message:', data)
+    infolog.info('admin_reply_message:', data)
 
     if (!data || token != config.simple_token.admin) {
         res.send({ 'code': 0, 'msg': '参数错误' });
@@ -724,7 +729,7 @@ router.post('/admin_reply_message', (req, res) => {
         pool.query(sql, [reply, blog_id, u_message_id], (err, result) => {
             if (err) throw err;
 
-            console.log('admin_reply_message--:', result)
+            infolog.info('admin_reply_message--:', result)
             if (result.affectedRows > 0) {
                 res.send({ 'code': 1 })
             } else {
@@ -733,7 +738,7 @@ router.post('/admin_reply_message', (req, res) => {
         })
 
     } catch (e) {
-        console.log('admin_reply_message--catcherr==>>', e);
+        errlog.error('admin_reply_message--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })
@@ -748,7 +753,7 @@ router.post('/admin_reply_message', (req, res) => {
 router.get('/admin_to_top_message', (req, res) => {
     var query = req.query;
     const { blog_id, u_message_id, token } = query;
-    console.log('admin_to_top_message:', query);
+    infolog.info('admin_to_top_message:', query);
 
     if (!query || token != config.simple_token.admin) {
         res.send({ 'code': 0, 'msg': '参数错误' });
@@ -775,7 +780,7 @@ router.get('/admin_to_top_message', (req, res) => {
             }
         })
     } catch (e) {
-        console.log('admin_to_top_message--catcherr==>>', e);
+        errlog.error('admin_to_top_message--catcherr==>>', e);
         res.send({ 'code': 0, 'msg': '未知错误' });
     }
 })

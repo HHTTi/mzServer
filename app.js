@@ -5,7 +5,12 @@ const cors = require("cors")
 const qs = require('querystring')
 const path = require('path');
 const session = require('express-session')
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
+
+
+const log4js= require('./src/middleware/logger')
+
+// const logger = log4js.getLogger()//根据需要获取logger
 
 const wx_subscription = require('./src/wx_subscription');
 const mp_remind_list_timer = require('./src/mp_remind_list_timer')
@@ -32,10 +37,13 @@ const config = {
 }
 
 
+
+
+
 // 获取文章列表, 写入数据库;
     
-new CronJob('1 1 0 * * *', function() {
-    console.log('You will see this message 1 1 0 * * *:',this);
+new CronJob('1 0 0 * * *', function() {
+    console.log('You will see this message 1 0 0 * * *:',this);
 
     new wx_subscription(config.wechat.appID,config.wechat.AppSecret).syncLatestArticle();
 
@@ -49,20 +57,27 @@ var index = require("./routes/index");
 var products = require("./routes/products");
 var users = require("./routes/users");
 var upload = require("./routes/upload");
-
 // 小程序 api
 var wx = require("./routes/wx");
 
-var app = express();
+
+const app = express();
+
+log4js.useLogger(app) 
+
+app.use(express.static(path.resolve(__dirname, '../client/public')));
+
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+
 
 app.use(session({
     secret: 'ddddddd',

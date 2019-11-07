@@ -1,6 +1,12 @@
+
 const path = require('path');
 const fe = require('fs-extra');
 const axios = require('axios');
+
+const log4js = require('./middleware/logger')
+const errlog = log4js.getLogger('err')
+const infolog = log4js.getLogger('info')
+
 
 class wx_access_token {
     /**
@@ -39,15 +45,14 @@ class wx_access_token {
         const href = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${this.appID}&secret=${this.appSecret}`;
         //获取本地存储的access_token
         const accessTokenFile = this.getAccessTokenForLocalDisk();
-        console.log('accessTokenFile',accessTokenFile)
+        
         const currentTime = Date.now();
         //如果本地文件中的access_token为空 或者 access_token的有效时间小于当前时间 表示access_token已过期
         if(accessTokenFile.access_token === '' || accessTokenFile.expires_time < currentTime) {
             try {
                 //访问微信公众平台接口获取acccess_token
-                const {status,data} = await axios.get(href);
-                console.log('getAccessToken status : ',status);
-                console.log('getAccessToken data : ',data);
+                const {data} = await axios.get(href);
+                
                 if(data.access_token && data.expires_in) {
                     //将access_token保存到本地文件中
                     accessTokenFile.access_token = data.access_token;
@@ -62,7 +67,7 @@ class wx_access_token {
                     throw new Error(JSON.stringify(data));
                 }
             } catch (e) {
-                console.error('请求获取access_token出错：',e);
+                errlog.error('请求获取access_token出错:',e);
             }
         }
         //access_token 没有过期，则直接返回本地存储的token
@@ -82,11 +87,12 @@ class wx_access_token {
         try {
             const access_token = await this.getAccessToken();
             const href = `https://api.weixin.qq.com/cgi-bin/material/batchget_material?access_token=${access_token}`;
-            const {status,data} = await axios.post(href,{type,offset,count});
-            console.log('status => ',status);
+            
+            const {data} = await axios.post(href,{type,offset,count});
+            
             return data;
         } catch(e) {
-            console.error('获取素材列表getBatchGetMaterial出错：',e);
+            errlog.error('获取素材列表getBatchGetMaterial出错：',e);
         }
     }
 
@@ -95,10 +101,10 @@ class wx_access_token {
             const href = `https://api.weixin.qq.com/sns/jscode2session?appid=${this.appID}&secret=${this.appSecret}&js_code=${code}&grant_type=authorization_code`;
            
             const {status,data} = await axios.post(href,{type,offset,count});
-            console.log('getUserOpenId ===:',status,data);
+            infolog.info('getUserOpenId:',status,data);
             return data;
         } catch(e) {
-            console.error('getUserOpenId出错：',e);
+            errlog.error('getUserOpenId出错:',e);
         }
     }
 

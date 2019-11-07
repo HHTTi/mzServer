@@ -1,12 +1,12 @@
 
+const log4js = require('./middleware/logger')
+const errlog = log4js.getLogger('err')
+const infolog = log4js.getLogger('info')
+
 const wx_access_token = require('./wx_access_token');
 const axios = require('axios');
 
-const default_config = {
-    env: 'remind',
-    name: 'openapi',
-    POSTBODY: '' //云函数的传入参数
-}
+
 
 class mp_subscribe_messageg {
     constructor(appID, appSecret){
@@ -17,17 +17,20 @@ class mp_subscribe_messageg {
             url = `https://api.weixin.qq.com/cgi-bin/message/subscribe/send?access_token=${access_token}`,
             code = 0
 
-        console.log('mp_subscribe_messagegdata',access_token,data);
+        infolog.info('send mp_subscribe_messagegdata to wx:',access_token,data)
+
         try{
             let res = await axios.post(url,data)
-            console.log('status,data',res.status,res.data)
+
+            infolog.info('send mp_subscribe_messageg result:',res.status,res.data)
+
             if(res.status === 200) {
 
                 code = 1
             }
 
         }catch (err){
-            console.log('send subscribeMessage err==>',err )
+            errlog.error('send subscribeMessageto wx:',err )
         }
 
         return {code}

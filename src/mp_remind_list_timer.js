@@ -1,3 +1,7 @@
+const log4js = require('./middleware/logger')
+const errlog = log4js.getLogger('err')
+const infolog = log4js.getLogger('info')
+
 
 const axios = require('axios')
 
@@ -19,7 +23,7 @@ class mp_remind_list_timer {
 
     async getRemindList() {
 
-        let t, total, batchTimes,
+        let total, batchTimes,
             access_token = await this.wx_access_token.getAccessToken(),
             url = 'https://api.weixin.qq.com/tcb/databasequery?access_token=' + access_token,
             que = {
@@ -54,11 +58,11 @@ class mp_remind_list_timer {
                     
                 }
             }else {
-                console.log('err:',status,data)
+                errlog.error('getRemindList axios.post:',status,data)
             }
             
         }catch(err){
-            console.log('axios.post(db.collection(\"remind\").limit(20).get()) err==>',err)
+            errlog.error('axios.post(db.collection(\"remind\").limit(20).get()) err:',err)
         }
 
     }
@@ -82,7 +86,9 @@ class mp_remind_list_timer {
             next = this.ca.getBirthday(calendar, birthday, isLeapMonth);
 
             let { nextBirthday, fromToday } = next;
-            console.log('next::', next,remind_time)
+
+            infolog.info('next::', next,'remind_time:',remind_time)
+
             switch (remind_date) {
                 case '前一天': {
                 fromToday -= 1
@@ -119,9 +125,8 @@ class mp_remind_list_timer {
     }
     async creatCronFn(time, tmplIds, nextBirthday, content, nickname, openid, _id){
         let _this = this;
-        console.log('creat Cron Function at',time)
+        infolog.info('creat  mp subscribeMessage at:',time)
         return new CronJob(time, async function () {
-            console.log('You will see this new CronJob message ,', this);
 
             //计划人 {{name4.DATA}}
             // 计划时间 {{date1.DATA}}
@@ -143,15 +148,14 @@ class mp_remind_list_timer {
                 template_id:tmplIds
             }
             try {
-                // console.log('creatCronFn',data)
                 const result = await _this.mp_subscribe_messageg.send(data)
 
-                console.log('subscribeMessage',result)
+                infolog.info('try send subscribeMessage, result:',result)
 
                 return result
           
               } catch (err) {
-                console.log('openapi--sendSubscribeMessage err::', err)
+                errlog.error('openapi--sendSubscribeMessage err:', err)
               }
             this.stop()
           }, null, true, 'Asia/Shanghai');
