@@ -71,9 +71,9 @@ class wx_subscription {
         try {
             const {thumb_media_id} = article;
             const isExits = await this.isExitsArticle(thumb_media_id);
-            let keys = Object.keys(article),
-                vals = Object.values(article)
-                sign,
+            let keys = Object.keys(article), 
+                vals = Object.values(article),
+                sign, 
                 sql;
             
             if(isExits) {   //数据库中已存在 UPDATE

@@ -20,15 +20,6 @@ const qcSmsConfig = {
 // 实例化QcloudSms
 var qcloudsms = sms(qcSmsConfig.appid, qcSmsConfig.appkey);
 
-// 设置请求回调处理, 这里只是演示，用户需要自定义相应处理回调
-function callback(err, res, resData) {
-    if (err) {
-        errlog.error("SmsSingleSender: ", err);
-    } else {
-        infolog.info("SmsSingleSender request data: ", res.req);
-        infolog.info("SmsSingleSender response data: ", resData);
-    }
-}
 
 class sendSms {
     constructor(){
@@ -36,7 +27,7 @@ class sendSms {
     }
     async tcSms(phone,params){
         let {templateId,smsSign} = qcSmsConfig,
-            code = 0,
+            code = 0,data,
             ssender = qcloudsms.SmsSingleSender();
 
         await ssender.sendWithParam(
@@ -50,13 +41,18 @@ class sendSms {
                 if (err) {
                     errlog.error("SmsSingleSender: ", err);
                 } else {
-                    code = 1
                     infolog.info("SmsSingleSender request data: ", res.req);
                     infolog.info("SmsSingleSender response data: ", resData);
+                    if(!resData.result && resData.fee >0) {
+                        code = 1
+                        data = {
+                            sid: resData.sid
+                        }
+                    }
                 }
             }
         ); 
-        return code ;
+        return {code,data} ;
     }
 }
 

@@ -128,7 +128,7 @@ app.get('/update_mp_subscribe_list', (req, res) => {
 
     if( query.token && query.token === token ){
 
-        new mp_remind_list_timer(config.mp.appID,config.mp.AppSecret).getRemindList()
+        new mp_remind_list_timer(appID,AppSecret).getRemindList()
 
         res.send({'code':1,'msg':'updateSuccess'})
     }else{

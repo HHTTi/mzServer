@@ -7,17 +7,20 @@ const axios = require('axios')
 
 const wx_access_token = require('./wx_access_token');
 const mp_subscribe_messageg = require('./mp_subscribe_message')
+const mp_cloud_http_api = require('./mp_cloud_http_api')
 const send_sms = require('./send_sms')
 const calendarJs = require('./compoments/calendar')
 // const ca = new calendarJs
 
 const CronJob = require('cron').CronJob
 
+const env = "remind-oxwth"
 const MAX_LIMIT = 100
 
 class mp_remind_list_timer {
     constructor(appID,appSecret){
         this.wx_access_token = new wx_access_token(appID,appSecret)
+        this.mp_cloud_http_api = new mp_cloud_http_api()
         this.mp_subscribe_messageg = new mp_subscribe_messageg(appID,appSecret)
         this.send_sms = new send_sms()
         this.ca = new calendarJs
@@ -27,40 +30,39 @@ class mp_remind_list_timer {
 
         let total, batchTimes,
             access_token = await this.wx_access_token.getAccessToken(),
-            url = 'https://api.weixin.qq.com/tcb/databasequery?access_token=' + access_token,
             que = {
-                env:'remind-oxwth',
-                // query:`db.collection('remind').count()`
+                env,
                 query: "db.collection(\"remind\").limit(100).get()"
             }
 
         // t = await db_remind.count()
         try{
-            let {status,data} = await axios.post(url,que)
+            let res = this.mp_cloud_http_api.databaseQuery(access_token,que)
 
-            if(status === 200 && !data.errcode && data.pager) {
-                total = data.pager.Total
+            if(res.code && res.pager) {
+                total = res.pager.Total
                 batchTimes = Math.ceil(total / 100)
 
-                this.mapList(data.data)
+                if( total > 0 && res.data.length > 0 ){
+                    this.mapList(res.data)
+                }
 
                 if(batchTimes <= 1){
                     return;
                 }
                 for (let i = 1; i < batchTimes; i++) {
-                    let que2 = {
-                        env:'remind-oxwth',
+                    que = {
+                        env,
                         query: `db.collection(\"remind\")skip(${i * MAX_LIMIT}).limit(${MAX_LIMIT}).get()`
                     }
-                    await axios.post(url,que2).then(res => {
-                        if(res.data && res.data.data && res.data.data.length > 0){
-                            this.mapList(res.data.data)
-                        }
-                    })
+                    res = await this.mp_cloud_http_api.databaseQuery(access_token,que)
                     
+                    if(res.code && res.data && res.data.length > 0) {
+                        this.mapList(res.data)
+                    }
                 }
             }else {
-                errlog.error('getRemindList axios.post:',status,data)
+                errlog.error('getRemindList axios.post:',res)
             }
             
         }catch(err){
@@ -125,51 +127,85 @@ class mp_remind_list_timer {
         })
         return code;
     }
-    async creatCronFn(time, tmplIds, nextBirthday, content, nickname, phone, openid, _id){
-        let _this = this,smsres;
+    async creatCronFn(time, tmplIds, nextBirthday, content, nickname, phone, openid, _id) {
         infolog.info('creat  mp subscribeMessage at:',time)
-        return new CronJob(time, async function () {
+        
+        let _this = this,
+            smsres,sid
+            msgres
+            newCron,
+            access_token = await this.wx_access_token.getAccessToken();
 
-            //计划人 {{name4.DATA}}
-            // 计划时间 {{date1.DATA}}
-            // 温馨提示 {{thing3.DATA}}
-            let data = {
-                touser: openid,
-                page: 'pages/remind/remind',
-                data: {
-                    name4: {
-                    value: nickname
-                  },
-                  date1: {
-                    value: nextBirthday
-                  },
-                  thing3: {
-                    value: content || "请留意~"
-                  }
+        newCron  =  new CronJob(
+            time, 
+            async function () {
+                // 提醒人{{name1.DATA}}
+                // 提醒日期{{date2.DATA}}
+                // 提醒事项{{thing3.DATA}}
+                let data = {
+                    touser: openid,
+                    page: 'pages/remind/remind',
+                    data: {
+                        name1: {
+                        value: nickname
+                    },
+                    date2: {
+                        value: nextBirthday
+                    },
+                    thing3: {
+                        value: content || "请留意~"
+                    }
+                    },
+                    template_id:tmplIds
                 },
-                template_id:tmplIds
-            },
-            params = [nextBirthday,nickname,content];
+                params = [nextBirthday,nickname,content ? content : '无' ];
 
-            phone = Number(phone)
+                phone = Number(phone)
 
-            try {
-                if(_this.isPhone(phone)) {
-                    smsres = await _this.send_sms.tcSms(phone,params)
-                    
+                try {
+                    // 发送订阅消息
+                    msgres = await _this.mp_subscribe_messageg.send(data)
+                    // 发送短信
+                    if(_this.isPhone(phone)) {
+                        smsres = await _this.send_sms.tcSms(phone,params)
+                        if(smsres.code) {
+                            sid = res.sid
+                        }
+                    }
+                    if(msgres.code || sid ) {
+                        // TODO: 记录到数据库
+                        let  que = {
+                            env,
+                            query:`db.collection('send_remind').add({
+                                data:[{
+                                    openid:'${openid}',
+                                    remind_id:'${remind_id}',
+                                    nextBirthday:'${nextBirthday}',
+                                    nickname:'${nickname}',
+                                    content:'${content}',
+                                    phone:'${phone}',
+                                    sid:'${sid}'
+                                }]
+                            })`
+                        }
+
+                        let  res = _this.mp_cloud_http_api.databaseAdd(access_token,que)
+                        
+                        infolog.info('try send subscribeMessage, result:',res)
+
+                    }
+
+                } catch (err) {
+                    errlog.error('openapi--sendSubscribeMessage err:', err)
                 }
-                const result = await _this.mp_subscribe_messageg.send(data)
+                this.stop()
+                }, 
+            null, 
+            true, 
+            'Asia/Shanghai'
+        );
 
-                infolog.info('try send subscribeMessage, result:',result)
-
-                return result
-          
-              } catch (err) {
-                errlog.error('openapi--sendSubscribeMessage err:', err)
-              }
-            this.stop()
-          }, null, true, 'Asia/Shanghai');
-
+        return newCron;
     }
 
     isPhone(phone) {
