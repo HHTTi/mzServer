@@ -2,6 +2,7 @@
 const path = require('path');
 const fe = require('fs-extra');
 const axios = require('axios');
+const request = require("request");
 
 const log4js = require('./middleware/logger')
 const errlog = log4js.getLogger('err')
@@ -116,7 +117,7 @@ class wework_api {
                     'Authorization': 'Bearer ' + this.access_token,
                 }
             })
-            infolog.info("获取帖子:", status, data)
+            // infolog.info("获取帖子:", status, data)
             return data;
         } catch (e) {
             errlog.error('获取帖子出错：', e);
@@ -150,6 +151,7 @@ class wework_api {
 
             const { status, data } = await axios.post(href, JSON.stringify(body), {
                 headers: {
+                    "Content-Type": "application/json;",
                     'Authorization': 'Bearer ' + this.access_token,
                     StaffID: staffId
                 }
@@ -214,15 +216,15 @@ class wework_api {
         try {
             if (type !== 'doc' || type !== 'thread') {
 
-                const href = `https://lxapi.lexiangla.com/cgi-bin/v1/categories?target_type=${type}&${parent_id ? 'parent_id='+parent_id :''}`;
+                const href = `https://lxapi.lexiangla.com/cgi-bin/v1/categories?target_type=${type}&${parent_id ? 'parent_id=' + parent_id : ''}`;
 
-                const { status, data } = await axios.get(href, 
+                const { status, data } = await axios.get(href,
                     {
                         headers: {
                             'Authorization': 'Bearer ' + this.access_token,
                         }
                     })
-                infolog.info("获取分类列表:", status, data)
+                // infolog.info("获取分类列表:", status, data)
                 return data;
             } else {
                 return -1;
@@ -232,6 +234,77 @@ class wework_api {
             errlog.error('获取分类列表：', e);
         }
     }
+
+    /**获取成员列表 GET https://lxapi.lexiangla.com/cgi-bin/v1/staffs
+     * 
+     * */
+    async getStaffs() {
+        try {
+            const href = `https://lxapi.lexiangla.com/cgi-bin/v1/staffs?per_page=100`;
+
+            const { status, data } = await axios.get(href,
+                {
+                    headers: {
+                        'Authorization': 'Bearer ' + this.access_token,
+                    }
+                })
+            console.log('获取成员列表:', data)
+            return data;
+
+        } catch (e) {
+            errlog.error('获取成员列表:', e);
+        }
+    }
+    async getAllStaffs() {
+        try {
+            let user = [],
+                next,
+                total,
+                batchNum,
+                result,
+                href = `https://lxapi.lexiangla.com/cgi-bin/v1/staffs?per_page=100`;
+
+            result = await axios.get(href,
+                {
+                    headers: {
+                        'Authorization': 'Bearer ' + this.access_token,
+                    }
+                })
+            // console.log('获取成员列表:',result.data)
+            if (result.status === 200) {
+                user.push(...result.data.data)
+
+                next = result.data.links.next
+
+                total = result.data.meta.total
+                batchNum = Math.ceil(total / 100)
+
+                if (batchNum <= 1 || !next) {
+                    return;
+                }
+                for (let i = 1; i < batchNum; i++) {
+                    if (next) {
+                        result = await axios.get(next,
+                            {
+                                headers: {
+                                    'Authorization': 'Bearer ' + this.access_token,
+                                }
+                            })
+                        if (result.status === 200) {
+                            user.push(...result.data.data)
+                            next = result.data.links.next
+                        }
+                    }
+
+                }
+                return user;
+            }
+
+        } catch (e) {
+            errlog.error('获取所有成员列表:', e);
+        }
+    }
+
 
 }
 

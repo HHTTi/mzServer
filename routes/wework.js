@@ -7,7 +7,7 @@ const infolog = log4js.getLogger('info')
 
 const wework_access_token = require('../src/wework_access_token')
 const wework_api = require('../src/wework_api')
-
+const sansiled_to_sansi = require('../src/compoments/sansiled_to_sansi')
 const config = {
     //
     sansi: {
@@ -242,15 +242,15 @@ router.get("/get_category", async (req, res) => {
         code = 0;
     infolog.info('wework get_category:', req.query);
     try {
-        if ( type && token === config.token && (company === 'sansi' || company === 'sansiled')) {
+        if (type && token === config.token && (company === 'sansi' || company === 'sansiled')) {
             let key = config[company].appKey,
                 secret = config[company].appSecret,
-                access_token = await new wework_access_token(key,secret).getAccessToken(),
+                access_token = await new wework_access_token(key, secret).getAccessToken(),
                 { data } = await new wework_api(access_token).getCategory(type, parent_id);
             if (data) {
                 code = 1;
             }
-            infolog.info("wework get_category: res", code,data)
+            infolog.info("wework get_category: res", code, data)
             res.send({ code, data })
         } else {
             res.send({ code })
@@ -258,6 +258,33 @@ router.get("/get_category", async (req, res) => {
         }
     } catch (e) {
         errlog.error('wework get_category:', e)
+    }
+})
+
+/**获取成员列表 GET https://lxapi.lexiangla.com/cgi-bin/v1/staffs
+ * 
+ * */
+router.get("/get_staffs", async (req, res) => {
+    let { token, company} = req.query,
+        code = 0;
+    infolog.info('wework get_staffs:', req.query);
+    try {
+        if ( token === config.token && (company === 'sansi' || company === 'sansiled')) {
+            let key = config[company].appKey,
+                secret = config[company].appSecret,
+                access_token = await new wework_access_token(key, secret).getAccessToken(),
+                data = await new wework_api(access_token).getAllStaffs();
+            if (data) {
+                code = 1;
+            }
+            // infolog.info("wework get_staffs: res", data)
+            res.send({ code, data })
+        } else {
+            res.send({ code })
+            return;
+        }
+    } catch (e) {
+        errlog.error('wework get_staffs:', e)
     }
 })
 
@@ -277,55 +304,12 @@ router.get('/get_threads_sansiled_to_sansi', async (req, res) => {
         if (token && token === config.token) {
             let sansiled_token = await new wework_access_token(config.sansiled.appKey, config.sansiled.appSecret).getAccessToken(),
                 sansi_token = await new wework_access_token(config.sansi.appKey, config.sansi.appSecret).getAccessToken(),
-                sansiled_wework_api = new wework_api(sansiled_token),
-                sansi_wework_api = new wework_api(sansi_token)
 
-            // 1
-            let { data } = await sansiled_wework_api.getThreads();
-
-            console.log('list', data)
-            // 2
-            for (let i = 0; i < data.length; i++) {
-
-                let item_thread = await sansiled_wework_api.getThreads(data[i].id);
-
-                let { attributes, relationships } = item_thread.data,
-                    { title, content } = attributes,
-                    { category, owner } = relationships,
-                    staffId = owner.data.id,
-                    categoryId = category.data.id
-
-                let new_thread = {
-                    data: {
-                        type: 'thread',
-                        attributes: {
-                            title,
-                            content
-                        },
-                        relationships: {
-                            category: {
-                                data: {
-                                    type: "category",
-                                    id: categoryId
-                                }
-                            }
-
-                        }
-                    }
-                }
-                console.log('new_thread', new_thread)
-
-                // 3
-
-                let result = await sansi_wework_api.setThread(new_thread, staffId)
-
-                console.log('id------', item_thread, 'setThread::', result)
-                return;
-            }
+                sansiled2sansi = await new sansiled_to_sansi(sansiled_token, sansi_token).threads()
 
 
             code = 1;
-            res.send({ code, data })
+            res.send({ code, sansiled2sansi })
         } else {
             res.send({ code })
             return;
