@@ -1,6 +1,6 @@
 
 const axios = require('axios')
-
+const wx_access_token = require('./wx_access_token')
 
 class mp_cloud_http_api {
     constructor(appID,appSecret){

@@ -37,7 +37,7 @@ class mp_remind_list_timer {
 
         // t = await db_remind.count()
         try{
-            let res = this.mp_cloud_http_api.databaseQuery(access_token,que)
+            let res = await this.mp_cloud_http_api.databaseQuery(access_token,que)
 
             if(res.code && res.pager) {
                 total = res.pager.Total
@@ -86,7 +86,9 @@ class mp_remind_list_timer {
 
             let { birthday, calendar, content, isLeapMonth, nickname, openid, remind_date, phone, remind_time, _id, tmplIds } = JSON.parse(item),
                 next;
-
+            if(!remind_time || !calendar || !birthday || !remind_date){
+                return;
+            }
             next = this.ca.getBirthday(calendar, birthday, isLeapMonth);
 
             let { nextBirthday, fromToday } = next;
@@ -131,8 +133,8 @@ class mp_remind_list_timer {
         infolog.info('creat  mp subscribeMessage at:',time)
         
         let _this = this,
-            smsres,sid
-            msgres
+            smsres,sid,
+            msgres,
             newCron,
             access_token = await this.wx_access_token.getAccessToken();
 
@@ -169,7 +171,7 @@ class mp_remind_list_timer {
                     if(_this.isPhone(phone)) {
                         smsres = await _this.send_sms.tcSms(phone,params)
                         if(smsres.code) {
-                            sid = res.sid
+                            sid = res.data.sid
                         }
                     }
                     if(msgres.code || sid ) {
@@ -179,7 +181,7 @@ class mp_remind_list_timer {
                             query:`db.collection('send_remind').add({
                                 data:[{
                                     openid:'${openid}',
-                                    remind_id:'${remind_id}',
+                                    remind_id:'${_id}',
                                     nextBirthday:'${nextBirthday}',
                                     nickname:'${nickname}',
                                     content:'${content}',
@@ -189,7 +191,7 @@ class mp_remind_list_timer {
                             })`
                         }
 
-                        let  res = _this.mp_cloud_http_api.databaseAdd(access_token,que)
+                        let  res = await _this.mp_cloud_http_api.databaseAdd(access_token,que)
                         
                         infolog.info('try send subscribeMessage, result:',res)
 
@@ -204,7 +206,7 @@ class mp_remind_list_timer {
             true, 
             'Asia/Shanghai'
         );
-
+        infolog.info("newCron:",newCron)
         return newCron;
     }
 
