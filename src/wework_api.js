@@ -145,21 +145,38 @@ class wework_api {
      * 创建帖子 POST https://lxapi.lexiangla.com/cgi-bin/v1/threads
      * 
      * */
-    async setThread(body, staffId) {
+    async setThread(requestData, staffId) {
         try {
+            console.log('requestData:', requestData)
             const href = `https://lxapi.lexiangla.com/cgi-bin/v1/threads`;
+            let res;
+            // const { status, data } = await axios.post(href, JSON.stringify(body), {
+            //     headers: {
+            //         "Content-Type": "application/json;",
+            //         'Authorization': 'Bearer ' + this.access_token,
+            //         StaffID: staffId
+            //     }
+            // })
+            // infolog.info("创建帖子:", status, data)
+            // return data;
 
-            const { status, data } = await axios.post(href, JSON.stringify(body), {
-                headers: {
-                    "Content-Type": "application/json;",
+            request({
+                url: href,
+                method: "POST",
+                json: true,
+                headers: { 
+                    "Content-Type": "application/json",
                     'Authorization': 'Bearer ' + this.access_token,
-                    StaffID: staffId
-                }
-            })
-            infolog.info("创建帖子:", status, data)
-            return data;
+                    "StaffID": staffId
+                },
+                body: { data: requestData }
+            }, function (error, response, body) {
+                // if(error) throw error;
+                console.log('setThread--------', error, 'response------', response, 'body', body)
+
+            });
         } catch (e) {
-            errlog.error('创建帖子出错：', e);
+            new Error('创建帖子出错：', e);
         }
     }
 

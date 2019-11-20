@@ -67,35 +67,35 @@ class sansiled_to_sansi {
                 // 4
                 newCategory = sansi_category.find(ele => ele.attributes.name == oldCategory.attributes.name),
                 // 5
-                new_thread = {
-                    data: {
-                        type: 'thread',
-                        attributes: {
-                            title,
-                            content:'测试内容'
-                        },
-                        relationships: {
-                            category: {
-                                data: {
-                                    type: "category",
-                                    id: newCategory
-                                }
+                new_thread =
+                {
+                    "type": "thread",
+                    "attributes": {
+                        "title": title,
+                        "content": content
+                    },
+                    "relationships": {
+                        "category": {
+                            "data": {
+                                "type": "category",
+                                "id": newCategory.id
                             }
-
                         }
                     }
+
                 },
                 oldStaff = sansiled_user.find(ele => ele.id == staffId),
                 newStaff = sansi_user.find(ele => ele.attributes.name == oldStaff.attributes.name)
 
-
+            console.log(new_thread, 'new_thread');
             let newThread = await this.sansi_wework_api.setThread(new_thread, newStaff.id)
 
             console.log('id-newThread-----', newThread)
 
 
             // 6
-            // let posts = await this.sansiled_wework_api.getThreadPosts(id);
+            let posts = await this.sansiled_wework_api.getThreadPosts(id);
+            console.log('posts',posts)
         }
     }
     //  分类列表
