@@ -3,6 +3,7 @@ const path = require('path');
 const fe = require('fs-extra');
 const axios = require('axios');
 const request = require("request");
+// const querystring = require('querystring');
 
 const log4js = require('./middleware/logger')
 const errlog = log4js.getLogger('err')
@@ -141,6 +142,45 @@ class wework_api {
             errlog.error('获取回帖出错：', e);
         }
     }
+    /**创建回帖 POST https://lxapi.lexiangla.com/cgi-bin/v1/threads/{ThreadID}/posts
+     * 
+     * */
+    async setPost(staffId, threadID, requestData) {
+        try {
+            console.log('requestData:', requestData, staffId, threadID)
+            const href = `https://lxapi.lexiangla.com/cgi-bin/v1/threads/${threadID}/posts`;
+
+            const { status, data } = await axios.post(href, JSON.stringify({ data: requestData }), {
+                headers: {
+                    "Content-Type": "application/json;",
+                    "Authorization": 'Bearer ' + this.access_token,
+                    "StaffID": staffId
+                }
+            })
+            infolog.info("创建回帖:", status, data)
+            return data;
+            // let res;
+            // request({
+            //     url: href,
+            //     method: "POST",
+            //     json: true,
+            //     headers: { 
+            //         "Content-Type": "application/json",
+            //         'Authorization': 'Bearer ' + this.access_token,
+            //         "StaffID": staffId
+            //     },
+            //     body: { data: requestData }
+            // }, function (error, response, body) {
+            //     // if(error) throw error;
+            //     console.log('response------', response.statusCode, 'body', body)
+            //     res= body
+            // });
+            // return res;
+        } catch (e) {
+            new Error('创建回帖', e);
+        }
+    }
+
     /**
      * 创建帖子 POST https://lxapi.lexiangla.com/cgi-bin/v1/threads
      * 
@@ -150,36 +190,73 @@ class wework_api {
             console.log('requestData:', requestData)
             const href = `https://lxapi.lexiangla.com/cgi-bin/v1/threads`;
             let res;
-            // const { status, data } = await axios.post(href, JSON.stringify(body), {
-            //     headers: {
-            //         "Content-Type": "application/json;",
-            //         'Authorization': 'Bearer ' + this.access_token,
-            //         StaffID: staffId
-            //     }
-            // })
-            // infolog.info("创建帖子:", status, data)
-            // return data;
-
-            request({
-                url: href,
-                method: "POST",
-                json: true,
-                headers: { 
-                    "Content-Type": "application/json",
+            const { status, data } = await axios.post(href, JSON.stringify({ data: requestData }), {
+                headers: {
+                    "Content-Type": "application/json;",
                     'Authorization': 'Bearer ' + this.access_token,
-                    "StaffID": staffId
-                },
-                body: { data: requestData }
-            }, function (error, response, body) {
-                // if(error) throw error;
-                console.log('setThread--------', error, 'response------', response, 'body', body)
-
-            });
+                    StaffID: staffId
+                }
+            })
+            infolog.info("创建帖子:", status)
+            return data;
+            // let data;
+            // await request({
+            //     url: href,
+            //     method: "POST",
+            //     json: true,
+            //     headers: { 
+            //         "Content-Type": "application/json",
+            //         'Authorization': 'Bearer ' + this.access_token,
+            //         "StaffID": staffId
+            //     },
+            //     body: { data: requestData }
+            // }, function (error, response, body) {
+            //     // if(error) throw error;
+            //     console.log('response------', response.statusCode, 'body', body)
+            //     data = body
+            // });
+            // return data;
         } catch (e) {
             new Error('创建帖子出错：', e);
         }
     }
+    /**删除帖子 DELETE https://lxapi.lexiangla.com/cgi-bin/v1/threads/{ThreadID}
+     * 
+     * */
+    async delThread(threadID, staffId) {
+        const href = `https://lxapi.lexiangla.com/cgi-bin/v1/threads/${threadID}`;
+        console.log('delThread', threadID, href)
+        // return axios({
+        //     method: 'DELETE',
+        //     url: href,
+        //     headers: {
+        //         "Authorization": 'Bearer ' + this.access_token,
+        //         "StaffID": staffId
+        //     }
+        // }).then(res => {
+        //     infolog.info("删除帖子:", res)
+        //     return res;
 
+        // }).catch(e => {
+        //     errlog.error('删除帖子:', e);
+        // })
+        // let res;
+        return request({
+            method: 'DELETE',
+            url: href,
+            json: true,
+            headers: {
+                'Authorization': 'Bearer ' + this.access_token,
+                "StaffID": staffId
+            },
+            body: {}
+        }, function (error, response, body) {
+            // if(error) throw error;
+            console.log('response------', response.status, 'body', body)
+            // res = body
+        });
+        //  res;
+    }
 
     /**创建评论 POST https://lxapi.lexiangla.com/cgi-bin/v1/comments
      * 
@@ -322,6 +399,54 @@ class wework_api {
         }
     }
 
+
+    /** 下载 GET https://lxapi.lexiangla.com/cgi-bin/v1/assets/{asset_id}
+     * 
+     * */
+    async getAsset(asset_id) {
+        try {
+            const href = `https://lxapi.lexiangla.com/cgi-bin/v1/assets/${asset_id}`;
+
+            const { status, data } = await axios.get(href,
+                {
+                    headers: {
+                        'Authorization': 'Bearer ' + this.access_token,
+                    }
+                })
+            // console.log('下载:', data)
+            return data;
+
+        } catch (e) {
+            errlog.error('下载:', e);
+        }
+    }
+    /** 上传 POST https://lxapi.lexiangla.com/cgi-bin/v1/assets
+     * 
+     * */
+    async setAsset(file, staffID) {
+        try {
+            const href = `https://lxapi.lexiangla.com/cgi-bin/v1/assets/`;
+
+            const { status, data } = await axios.post(href,
+                {
+                    type: 'image',
+                    file: file
+                },
+                {
+                    headers: {
+                        'Content-Type':'application/x-www-form-urlencoded',
+                        'Authorization': 'Bearer ' + this.access_token,
+                        'StaffID': staffID
+                        // 'StaffID': '008033'
+                    }
+                })
+            console.log('上传:', status, data)
+            return data;
+
+        } catch (e) {
+            errlog.error('上传:', e);
+        }
+    }
 
 }
 

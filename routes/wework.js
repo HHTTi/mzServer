@@ -99,7 +99,29 @@ router.get("/get_threads", async (req, res) => {
         errlog.error('wework get_threads:', e)
     }
 })
-
+// 删除帖子 delThread 
+router.get("/del_threads", async (req, res) => {
+    let { token, company, id, staff } = req.query,
+        code = 0;
+    infolog.info('wework get_threads:', req.query);
+    try {
+        if (token === config.token && (company === 'sansi')) {
+            let access_token = await new wework_access_token(config[company].appKey, config[company].appSecret).getAccessToken()
+            let data = await new wework_api(access_token).delThread(id, staff);
+            // console.log('data,---',data)
+            if (data) {
+                code = 1;
+            }
+            infolog.info("wework del_thread: res", code)
+            res.send({ code })
+        } else {
+            res.send({ code: -1 })
+            return;
+        }
+    } catch (e) {
+        errlog.error('wework del_thread:', e)
+    }
+})
 /**
  * 获取回帖 
  * 
@@ -265,11 +287,11 @@ router.get("/get_category", async (req, res) => {
  * 
  * */
 router.get("/get_staffs", async (req, res) => {
-    let { token, company} = req.query,
+    let { token, company } = req.query,
         code = 0;
     infolog.info('wework get_staffs:', req.query);
     try {
-        if ( token === config.token && (company === 'sansi' || company === 'sansiled')) {
+        if (token === config.token && (company === 'sansi' || company === 'sansiled')) {
             let key = config[company].appKey,
                 secret = config[company].appSecret,
                 access_token = await new wework_access_token(key, secret).getAccessToken(),
@@ -285,6 +307,58 @@ router.get("/get_staffs", async (req, res) => {
         }
     } catch (e) {
         errlog.error('wework get_staffs:', e)
+    }
+})
+
+/** 下载  getAsset
+ * 
+ * */
+router.get("/get_asset", async (req, res) => {
+    let { token, company, id } = req.query,
+        code = 0;
+    infolog.info('wework get_staffs:', req.query);
+    try {
+        if (token === config.token && (company === 'sansi' || company === 'sansiled')) {
+            let key = config[company].appKey,
+                secret = config[company].appSecret,
+                access_token = await new wework_access_token(key, secret).getAccessToken(),
+                data = await new wework_api(access_token).getAsset(id);
+            if (data) {
+                code = 1;
+            }
+            // infolog.info("wework get_staffs: res", data)
+            res.send({ code, data })
+        } else {
+            res.send({ code })
+            return;
+        }
+    } catch (e) {
+        errlog.error('wework get_stsaffs:', e)
+    }
+})
+// 上传 setAsset
+router.get("/set_asset", async (req, res) => {
+    let { token, company, id } = req.query,
+        code = 0;
+
+    infolog.info('wework set_asset:', req.query);
+    try {
+        if (token === config.token && (company === 'sansi')) {
+            let key = config[company].appKey,
+                secret = config[company].appSecret,
+                access_token = await new wework_access_token(key, secret).getAccessToken(),
+                data = await new wework_api(access_token).setAsset(id);
+            if (data) {
+                code = 1;
+            }
+            // infolog.info("wework get_staffs: res", data)
+            res.send({ code, data })
+        } else {
+            res.send({ code })
+            return;
+        }
+    } catch (e) {
+        errlog.error('wework set_asset:', e)
     }
 })
 
@@ -316,7 +390,7 @@ router.get('/get_threads_sansiled_to_sansi', async (req, res) => {
         }
 
     } catch (e) {
-        errlog.error('wework get_thread_post:', e)
+        errlog.error('wework get_threads_sansiled_to_sansi:', e)
     }
 })
 
